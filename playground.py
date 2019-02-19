@@ -12,6 +12,10 @@ import random
 from colour import Color as C
 from rpi_ws281x import *
 
+from celery import Celery
+
+celery = Celery('tasks', broker='redis://localhost')
+
 class MyPixelStrip(PixelStrip):
     def __init__(self, num=12, pin=18, freq_hz=800000, dma=10, invert=False, brightness=255, channel=0, strip_type=None, gamma=None):
         super().__init__(num, pin, freq_hz, dma, invert, brightness, channel, strip_type, gamma)
@@ -29,27 +33,40 @@ LED_BRIGHTNESS = 20     # Set to 0 for darkest and 255 for brightest
 LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
+# Create NeoPixel object with appropriate configuration.
+strip = MyPixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+# Intialize the library (must be called once before other functions).
+strip.begin()
 
-# Define functions which animate LEDs in various ways.
-def colorWipe(strip, color, wait_ms=50):
+@celery.task
+def clear():
     """Wipe color across display a pixel at a time."""
     for i in range(strip.numPixels()):
-        strip.setPixelRGB(i, color)
+        strip.setPixelRGB(i, C('black'))
+        strip.show()
+
+@celery.task
+def colorWipe(color, wait_ms=50):
+    """Wipe color across display a pixel at a time."""
+    for i in range(strip.numPixels()):
+        strip.setPixelRGB(i, C(color))
         strip.show()
         time.sleep(wait_ms/1000.0)
 
-def colorRandom(strip, wait_ms=10, iterations=10):
+@celery.task
+def colorRandom(wait_ms=10, iterations=10):
     """Wipe color across display a pixel at a time."""
-    for j in range(256*iterations):
+    for _ in range(256*iterations):
         i = int(random.uniform(0, LED_COUNT))
         strip.setPixelRGB(i, C(rgb = (random.random(),random.random(),random.random())))
         strip.show()
         time.sleep(wait_ms/1000.0)
 
-def colorFire(strip, wait_ms=20, iterations=10):
+@celery.task
+def fire(from_color='orange', to_color='red', wait_ms=20, iterations=10):
     """Wipe color across display a pixel at a time."""
-    colors = list(C('orange').range_to(C('red'), 100))
-    for j in range(256*iterations):
+    colors = list(C(from_color).range_to(C(to_color), 100))
+    for _ in range(256*iterations):
         i = int(random.uniform(0, LED_COUNT))
         c = colors[int(random.uniform(0, len(colors)))]
         intensity = random.uniform(0, 1)
@@ -58,7 +75,10 @@ def colorFire(strip, wait_ms=20, iterations=10):
         strip.show()
         time.sleep(random.uniform(0, 2*wait_ms)/1000.0)
 
-def theaterChase(strip, color, wait_ms=50, iterations=10):
+################## FIX COLOR
+
+@celery.task
+def theaterChase(color, wait_ms=50, iterations=10):
     """Movie theater light style chaser animation."""
     for j in range(iterations):
         for q in range(3):
@@ -80,7 +100,8 @@ def wheel(pos):
         pos -= 170
         return Color(0, pos * 3, 255 - pos * 3)
 
-def rainbow(strip, wait_ms=20, iterations=1):
+@celery.task
+def rainbow(wait_ms=20, iterations=1):
     """Draw rainbow that fades across all pixels at once."""
     for j in range(256*iterations):
         for i in range(strip.numPixels()):
@@ -88,7 +109,8 @@ def rainbow(strip, wait_ms=20, iterations=1):
         strip.show()
         time.sleep(wait_ms/1000.0)
 
-def rainbowCycle(strip, wait_ms=20, iterations=5):
+@celery.task
+def rainbowCycle(wait_ms=20, iterations=5):
     """Draw rainbow that uniformly distributes itself across all pixels."""
     for j in range(256*iterations):
         for i in range(strip.numPixels()):
@@ -96,7 +118,8 @@ def rainbowCycle(strip, wait_ms=20, iterations=5):
         strip.show()
         time.sleep(wait_ms/1000.0)
 
-def theaterChaseRainbow(strip, wait_ms=50):
+@celery.task
+def theaterChaseRainbow(wait_ms=50):
     """Rainbow movie theater light style chaser animation."""
     for j in range(256):
         for q in range(3):
@@ -114,36 +137,29 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
     args = parser.parse_args()
 
-    # Create NeoPixel object with appropriate configuration.
-    strip = MyPixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
-    # Intialize the library (must be called once before other functions).
-    strip.begin()
-
     print ('Press Ctrl-C to quit.')
     if not args.clear:
         print('Use "-c" argument to clear LEDs on exit')
-
     try:
-
         while True:
-            colorFire(strip)
-            colorRandom(strip)
+            colorFire()
+            colorRandom()
             print ('Color wipe animations.')
-            colorWipe(strip, C(rgb=(1, 0, 0)))  # Red wipe
-            colorWipe(strip, C('blue'))  # Blue wipe
-            colorWipe(strip, C('lime'))  # Green wipe
-            colorWipe(strip, C(hue=0, saturation=1, luminance=0.5))
-            colorWipe(strip, C('gold'))
-            colorWipe(strip, C('orangered'))
+            colorWipe(C(rgb=(1, 0, 0)))  # Red wipe
+            colorWipe(C('blue'))  # Blue wipe
+            colorWipe(C('lime'))  # Green wipe
+            colorWipe(C(hue=0, saturation=1, luminance=0.5))
+            colorWipe(C('gold'))
+            colorWipe(C('orangered'))
             print ('Theater chase animations.')
-            theaterChase(strip, Color(127, 127, 127))  # White theater chase
-            theaterChase(strip, Color(127,   0,   0))  # Red theater chase
-            theaterChase(strip, Color(  0,   0, 127))  # Blue theater chase
+            theaterChase(Color(127, 127, 127))  # White theater chase
+            theaterChase(Color(127,   0,   0))  # Red theater chase
+            theaterChase(Color(  0,   0, 127))  # Blue theater chase
             print ('Rainbow animations.')
-            rainbow(strip)
-            rainbowCycle(strip)
-            theaterChaseRainbow(strip)
+            rainbow()
+            rainbowCycle()
+            theaterChaseRainbow()
 
     except KeyboardInterrupt:
         if args.clear:
-            colorWipe(strip, Color(0,0,0), 10)
+            colorWipe(Color(0,0,0), 10)

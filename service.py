@@ -1,15 +1,17 @@
-from flask import Flask, jsonify, request
-app = Flask(__name__)
+from flask import Flask, jsonify, request, redirect, url_for
+from flask_cors import CORS
+
+app = Flask(__name__,
+            static_url_path='', 
+            static_folder='rpi-ws281x-vue/dist')
+CORS(app)
 
 from celery import Celery
 celery = Celery('tasks', broker='redis://localhost')
 
-def RepresentsInt(s):
-    try: 
-        int(s)
-        return True
-    except ValueError:
-        return False
+@app.route('/')
+def root():
+    return redirect(url_for('static', filename='index.html'))
 
 @app.route('/queue')
 def init():
