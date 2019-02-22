@@ -675,6 +675,11 @@
     cssnano-preset-default "^4.0.0"
     postcss "^7.0.0"
 
+"@mdi/font@^3.4.93":
+  version "3.4.93"
+  resolved "https://registry.yarnpkg.com/@mdi/font/-/font-3.4.93.tgz#48f738c28aa49a5711811e03c59766a56844d119"
+  integrity sha512-iXNInmV6Xlmq8SA1zvYxp4uUA7/Z3cNgiK+Ps8UmHZNn1FLD6KDgeg0XE5RCraK+9qPWl8jsiBMpmbs+RFxI4Q==
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"
@@ -7738,6 +7743,11 @@ vue-style-loader@^4.1.0:
   dependencies:
     hash-sum "^1.0.2"
     loader-utils "^1.0.2"
+
+vue-swatches@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/vue-swatches/-/vue-swatches-1.0.3.tgz#84eb23ba99bbbb0d56698f3a8bdb1b340203d33b"
+  integrity sha512-3J+Nc3bisvhhp0BW0pfTbQvdl3i+dhwoPjoM+2D6R6hW65KNpXOA+sJwcSg2j1Xd6fLcOV7LMb2sz6s4vKSWRg==
 
 vue-template-compiler@^2.5.21:
   version "2.6.6"

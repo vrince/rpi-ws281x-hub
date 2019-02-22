@@ -20,13 +20,7 @@
       </v-flex>
 
       <v-flex xs12>
-        <v-card color="primary" class="white--text">
-            <v-card-title primary-title>
-                <div class="headline">New</div>
-                <v-spacer></v-spacer>
-                <v-btn fab color='accent' @click="newTask('rainbow')"><v-icon>add</v-icon></v-btn>
-            </v-card-title>
-        </v-card>
+        <AddProgramCard></AddProgramCard>
       </v-flex>
     </v-layout>
   </v-container>
@@ -34,8 +28,12 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
+import AddProgramCard from "./AddProgramCard"
 
 export default {
+  components: {
+      AddProgramCard
+      },
   data: () => ({}),
   computed: {...mapState(["queue"])},
   methods: {...mapActions(['newTask'])}

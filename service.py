@@ -31,6 +31,7 @@ def task(task_name):
             arguments[key] = float(request.args[key])
         except ValueError: 
             arguments[key] = request.args[key]
+    print(arguments)
     result = celery.send_task('playground.{}'.format(task_name),(),arguments)
     return jsonify({
         'task': {
