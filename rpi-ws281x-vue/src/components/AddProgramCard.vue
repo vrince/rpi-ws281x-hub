@@ -1,5 +1,5 @@
 <template>
-    <v-card color="primary" class="white--text">
+    <v-card light class="white--text">
         <v-card-title primary-title>
             <v-menu bottom right>
             <v-btn slot="activator" fab dark large>
@@ -23,12 +23,31 @@
             </v-menu>
             <v-btn v-if="select" icon fab @click="newTask(select)"><v-icon>mdi-play</v-icon></v-btn>
             <v-btn v-if="select" icon fab @click="select = null"><v-icon>mdi-close</v-icon></v-btn>
+            <v-slider
+                v-if="select && select.arguments.duration_s"
+                v-model="select.arguments.duration_s"
+                :max="600"
+                :min="10"
+                prepend-icon="mdi-timer"
+                thumb-label
+                thumb-color="error">
+            </v-slider>
+            <v-spacer v-else/>
+            <v-btn v-if="select" icon fab large color='error' @click=""><v-icon>mdi-playlist-plus</v-icon></v-btn>
         </v-card-title>
         <v-card-text v-if="select">
-            <v-card light v-for="color in colors" :key="color" class="mb-2">
-                <swatches v-model="select.arguments[color]" inline colors="material-basic"></swatches>
-            </v-card>
-            <v-btn fab large color='error' absolute right bottom @click=""><v-icon>mdi-playlist-plus</v-icon></v-btn>
+                <v-container class="pa-0" grid-list-md text-xs-center>
+                    <v-layout row wrap ma-0 pa-0>
+                        <v-flex v-for="color in colors" :key="color" xs6>
+                            <v-card class="pa-2" light :color="select.arguments[color]" elevation=10>
+                                <v-card-actions>  
+                                    <swatches v-model="select.arguments[color]" shapes="circles" inline colors="material-basic"></swatches>
+                                </v-card-actions>
+                            </v-card>
+                        </v-flex>
+                    </v-layout>
+                </v-container>
+
         </v-card-text>
     </v-card>
 </template>

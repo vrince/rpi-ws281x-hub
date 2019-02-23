@@ -17,46 +17,58 @@ export default new Vuex.Store({
     tasks: [
       {
         title: "fire",
-        name: "fire",
+        name: "colorFire",
         icon: "mdi-fire",
         arguments: {
           from_color: "orange",
-          to_color: "red"
+          to_color: "red",
+          duration_s: 10,
+          wait_s: 0.01
         }
       },
       {
         title: "rainbow",
         name: "rainbow",
         icon: "mdi-palette",
-        arguments: {}
-      },
-      {
-        title: "gradient",
-        name: "gradient",
-        icon: "mdi-gauge",
         arguments: {
-          from_color: "orange",
-          to_color: "red",
-          wait_ms: 345
+          duration_s: 10,
+          wait_s: 0.01
         }
       },
       {
-        title: "fire",
-        name: "rainbow-2",
+        title: "gradient",
+        name: "colorWipe",
+        icon: "mdi-gauge",
+        arguments: {
+          color: "orange",
+          wait_s: 0.5
+        }
+      },
+      {
+        title: "cycle",
+        name: "rainbowCycle",
         icon: "mdi-pinwheel",
-        arguments: {}
+        arguments: {
+          duration_s: 10,
+          wait_s: 0.025
+        }
       },
       {
-        title: "fire",
-        name: "magic",
+        title: "random",
+        name: "colorRandom",
         icon: "mdi-auto-fix",
-        arguments: {}
+        arguments: {
+          duration_s: 10,
+          wait_s: 0.025
+        }
       },
       {
-        title: "fire",
-        name: "star",
+        title: "fade",
+        name: "colorFade",
         icon: "mdi-weather-night",
-        arguments: {}
+        arguments: {
+          duration_s: 60
+        }
       }
     ]
   },
