@@ -78,25 +78,25 @@ def colorFade(duration_s=1):
         time.sleep(frame_time/1000.0)
 
 @celery.task
-def colorWipe(color, wait_s=0.25):
+def colorWipe(color, wait_ms=50):
     """Wipe color across display a pixel at a time."""
     for i in range(strip.numPixels()):
         strip.setPixelRGB(i, C(color))
         strip.show()
-        time.sleep(wait_s)
+        time.sleep(wait_ms/1000)
 
 @celery.task
-def colorRandom(wait_s=0.1, duration_s=1):
+def colorRandom(wait_ms=10, duration_s=1):
     """Wipe color across display a pixel at a time."""
     start = timer()
     while (timer() - start) < duration_s:
         i = int(random.uniform(0, LED_COUNT))
         strip.setPixelRGB(i, C(rgb = (random.random(),random.random(),random.random())))
         strip.show()
-        time.sleep(random.uniform(0, 2*wait_s))
+        time.sleep(random.uniform(0, 2*wait_ms/1000))
 
 @celery.task
-def colorFire(from_color='orange', to_color='red', wait_s=0.02, duration_s=10):
+def colorFire(from_color='orange', to_color='red', wait_ms=20, duration_s=10):
     """Wipe color across display a pixel at a time."""
     colors = list(C(from_color).range_to(C(to_color), 100))
     start = timer()
@@ -107,7 +107,7 @@ def colorFire(from_color='orange', to_color='red', wait_s=0.02, duration_s=10):
         color = C(rgb=tuple([e * intensity for e in c.rgb]))
         strip.setPixelRGB(i, color)
         strip.show()
-        time.sleep(random.uniform(0, 2*wait_s))
+        time.sleep(random.uniform(0, 2*wait_ms/1000))
 
 ################## FIX COLOR
 
@@ -123,7 +123,7 @@ def wheel(pos):
         return Color(0, pos * 3, 255 - pos * 3)
 
 @celery.task
-def rainbow(wait_s=0.02, duration_s=10):
+def rainbow(wait_ms=20, duration_s=10):
     """Draw rainbow that fades across all pixels at once."""
     start = timer()
     while (timer() - start) < duration_s:
@@ -131,10 +131,10 @@ def rainbow(wait_s=0.02, duration_s=10):
             for i in range(strip.numPixels()):
                 strip.setPixelColor(i, wheel((i+j) & 255))
             strip.show()
-            time.sleep(wait_s)
+            time.sleep(wait_ms/1000)
 
 @celery.task
-def rainbowCycle(wait_s=0.02, duration_s=10):
+def rainbowCycle(wait_ms=20, duration_s=10):
     """Draw rainbow that uniformly distributes itself across all pixels."""
     start = timer()
     while (timer() - start) < duration_s:
@@ -142,7 +142,7 @@ def rainbowCycle(wait_s=0.02, duration_s=10):
             for i in range(strip.numPixels()):
                 strip.setPixelColor(i, wheel((int(i * 256 / strip.numPixels()) + j) & 255))
             strip.show()
-            time.sleep(wait_s)
+            time.sleep(wait_ms/1000)
 
 @celery.task
 def theaterChaseRainbow(wait_ms=50):

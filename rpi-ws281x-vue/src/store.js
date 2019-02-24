@@ -14,63 +14,7 @@ export default new Vuex.Store({
   state: {
     queue: {},
     lastTask: {},
-    tasks: [
-      {
-        title: "fire",
-        name: "colorFire",
-        icon: "mdi-fire",
-        arguments: {
-          from_color: "orange",
-          to_color: "red",
-          duration_s: 10,
-          wait_s: 0.01
-        }
-      },
-      {
-        title: "rainbow",
-        name: "rainbow",
-        icon: "mdi-palette",
-        arguments: {
-          duration_s: 10,
-          wait_s: 0.01
-        }
-      },
-      {
-        title: "gradient",
-        name: "colorWipe",
-        icon: "mdi-gauge",
-        arguments: {
-          color: "orange",
-          wait_s: 0.5
-        }
-      },
-      {
-        title: "cycle",
-        name: "rainbowCycle",
-        icon: "mdi-pinwheel",
-        arguments: {
-          duration_s: 10,
-          wait_s: 0.025
-        }
-      },
-      {
-        title: "random",
-        name: "colorRandom",
-        icon: "mdi-auto-fix",
-        arguments: {
-          duration_s: 10,
-          wait_s: 0.025
-        }
-      },
-      {
-        title: "fade",
-        name: "colorFade",
-        icon: "mdi-weather-night",
-        arguments: {
-          duration_s: 60
-        }
-      }
-    ]
+    program: []
   },
   mutations: {
     setQueue: (state, { queue }) => {
@@ -78,6 +22,9 @@ export default new Vuex.Store({
     },
     setLastTask: (state, { task }) => {
       state.lastTask = task;
+    },
+    pushProgram: (state, { task }) => {
+      state.program.push(task);
     }
   },
   actions: {
@@ -92,8 +39,10 @@ export default new Vuex.Store({
         }
       );
     },
-    newTask: async function(context, task) {
-      base.get(`task/${task.name}`, { params: task.arguments }).then(
+    sendTask: async function(context, { task, duration = null }) {
+      const params = task.arguments;
+      //if (params.duration_s && duration) params.duration_s = duration;
+      base.get(`task/${task.name}`, { params }).then(
         response => {
           context.commit("setLastTask", { task: response.data.data });
           return true;
@@ -102,6 +51,23 @@ export default new Vuex.Store({
           return false;
         }
       );
+    },
+    run: async function({ state }) {
+      console.log(state.program);
+      for (const key in state.program) {
+        const task = state.program[key];
+        base.get(`task/${task.name}`, { params: task.arguments }).then(
+          response => {
+            return true;
+          },
+          err => {
+            return false;
+          }
+        );
+      }
+    },
+    addToProgram: async function(context, task) {
+      context.commit("pushProgram", { task });
     }
   }
 });
