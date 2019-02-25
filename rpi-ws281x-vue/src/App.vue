@@ -6,7 +6,32 @@
         <span class="font-weight-light">WS281x</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
+      <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
     </v-toolbar>
+    <v-navigation-drawer v-model="drawer" fixed right app>
+      <v-list dense>
+        <v-list-tile>
+          <v-toolbar-title class="headline">
+            Settings
+          </v-toolbar-title>
+        </v-list-tile>
+        <v-list-tile>
+          <v-toolbar-title class="font-weight-light">
+            Brightness
+          </v-toolbar-title>
+        </v-list-tile>
+        <v-list-tile>
+            <v-slider
+              v-model="brightness"
+              :min="5"
+              step="5"
+              ticks="always"
+              prepend-icon="mdi-brightness-5"
+              @change="sentBrightness"
+            ></v-slider>
+        </v-list-tile>
+      </v-list>
+    </v-navigation-drawer>
     <v-content>
       <router-view></router-view>
     </v-content>
@@ -14,13 +39,24 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
 export default {
   name: "App",
   components: {},
   data() {
     return {
-      //
+      drawer: null,
+      brightness: 10
     };
+  },
+  computed: {
+  },
+  methods: {
+    ...mapActions(["sendTask"]),
+    sentBrightness: function() {
+      this.sendTask({ task: {name: 'brighteness', arguments: {value: this.brightness / 100}}})
+    }
   }
 };
 </script>

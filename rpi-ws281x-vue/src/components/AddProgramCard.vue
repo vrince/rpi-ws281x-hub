@@ -8,9 +8,9 @@
         </v-btn>
         <v-list two-line>
           <v-list-tile
-            v-for="(task, i) in tasks"
+            v-for="(task, i) in tasksList"
             :key="i"
-            @click="createTask(i)"
+            @click="createTask(task)"
           >
             <v-list-tile-action>
               <v-icon>{{ task.icon }}</v-icon>
@@ -22,7 +22,7 @@
           </v-list-tile>
         </v-list>
       </v-menu>
-      <!--v-btn fab dark large class="mr-3" @click="create"></v-btn-->
+      <v-spacer />
       <v-btn
         v-if="select"
         color="success"
@@ -30,7 +30,6 @@
         @click="sendTask({ task: select, duration: 10 })"
         ><v-icon>mdi-play</v-icon></v-btn
       >
-      <v-spacer />
       <v-btn v-if="select" color="primary" fab @click="saveTask"
         ><v-icon>mdi-plus</v-icon></v-btn
       >
@@ -46,13 +45,11 @@
               v-model="select.arguments.duration_s"
               :max="600"
               :min="10"
-              :thumb-size="48"
               step="10"
               ticks="always"
               tick-size="2"
               prepend-icon="mdi-timer"
               thumb-label="always"
-              thumb-color="primary"
             >
             </v-slider>
           </v-flex>
@@ -61,31 +58,26 @@
               v-model="select.arguments.wait_ms"
               :max="100"
               :min="10"
-              :thumb-size="48"
               step="5"
               ticks="always"
               tick-size="2"
               prepend-icon="mdi-play-speed"
               thumb-label="always"
-              thumb-color="primary"
             >
             </v-slider>
           </v-flex>
-          <v-flex v-for="color in colors" :key="color" xs12>
+          <v-flex v-for="color in colorArgs" :key="color" xs12>
             <v-card
               class="pa-2"
-              light
               :color="select.arguments[color]"
               elevation="10"
             >
-              <v-card-actions>
-                <swatches
-                  v-model="select.arguments[color]"
-                  shapes="circles"
-                  inline
-                  colors="material-basic"
-                ></swatches>
-              </v-card-actions>
+              <swatches
+                v-model="select.arguments[color]"
+                shapes="circles"
+                inline
+                :colors="colors"
+              ></swatches>
             </v-card>
           </v-flex>
         </v-layout>
@@ -100,8 +92,6 @@ import Swatches from "vue-swatches";
 import "vue-swatches/dist/vue-swatches.min.css";
 import { tasks } from "../constant";
 
-console.log(tasks);
-
 export default {
   components: {
     Swatches
@@ -109,13 +99,27 @@ export default {
   data: () => ({
     select: null,
     color: null,
-    tasks: null
+    colors: [
+      "#FF0000",
+      "#FF8000",
+      "#FFFF00",
+      "#80FF00",
+      "#00FF00",
+      "#00FF80",
+      "#00FFFF",
+      "#0080FF",
+      "#0000FF",
+      "#8000FF",
+      "#FF00FF",
+      "#FF0080"
+    ]
   }),
-  mounted() {
-    this.tasks = tasks;
-  },
+  mounted() {},
   computed: {
-    colors: function() {
+    tasksList: function() {
+      return tasks;
+    },
+    colorArgs: function() {
       return this.select
         ? Object.keys(this.select.arguments).filter(
             a => a.indexOf("color") !== -1
@@ -125,21 +129,8 @@ export default {
   },
   methods: {
     ...mapActions(["sendTask", "addToProgram"]),
-    createTask: function(i) {
-      this.select = JSON.parse(JSON.stringify(tasks[i]));
-    },
-    create: function() {
-      this.select = {
-        title: "fire",
-        name: "colorFire",
-        icon: "mdi-fire",
-        arguments: {
-          from_color: "#ffa500",
-          to_color: "#ff4500",
-          duration_s: 10,
-          wait_ms: 10
-        }
-      };
+    createTask: function(task) {
+      this.select = JSON.parse(JSON.stringify(task));
     },
     saveTask: function() {
       this.addToProgram(this.select);

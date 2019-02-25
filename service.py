@@ -32,7 +32,7 @@ def task(task_name):
         except ValueError: 
             arguments[key] = request.args[key]
     print(arguments)
-    result = celery.send_task('playground.{}'.format(task_name),(),arguments)
+    result = celery.send_task('worker.{}'.format(task_name),(),arguments)
     return jsonify({
         'task': {
             'name': task_name,

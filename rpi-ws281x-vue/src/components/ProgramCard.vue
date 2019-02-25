@@ -8,7 +8,7 @@
         v-for="(color, i) in colors"
         :key="i"
         :color="color"
-        round
+        fab
         large
       ></v-btn>
       <v-btn v-if="duration" round large
