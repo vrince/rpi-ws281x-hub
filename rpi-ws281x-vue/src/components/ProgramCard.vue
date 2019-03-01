@@ -9,13 +9,12 @@
         :key="i"
         :color="color"
         fab
-        large
       ></v-btn>
-      <v-btn v-if="duration" round large
-        ><v-icon>mdi-timer</v-icon>{{ duration }}</v-btn
+      <v-chip v-if="duration" class="headline font-weight-light"
+        ><v-icon left>mdi-timer</v-icon>{{ duration }}</v-chip
       >
-      <v-btn v-if="speed" round large
-        ><v-icon>mdi-play-speed</v-icon>{{ speed }}</v-btn
+      <v-chip v-if="speed" class="headline font-weight-light"
+        ><v-icon left>mdi-play-speed</v-icon>{{ speed }}</v-chip
       >
       <v-spacer />
     </v-card-title>

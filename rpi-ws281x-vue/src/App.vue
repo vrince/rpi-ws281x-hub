@@ -9,7 +9,7 @@
       <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
     </v-toolbar>
     <v-navigation-drawer v-model="drawer" fixed right app>
-      <v-list dense>
+      <v-list>
         <v-list-tile>
           <v-toolbar-title class="headline">
             Settings
@@ -30,6 +30,15 @@
               @change="sentBrightness"
             ></v-slider>
         </v-list-tile>
+        <v-list-tile>
+          <v-toolbar-title class="font-weight-light">
+            Config
+          </v-toolbar-title>
+        </v-list-tile>
+        <v-list-tile v-for="(value,key) in config" :key="key">
+          {{key}}
+          <soan class="font-weight-light ma-2">{{value}}</soan>
+        </v-list-tile>
       </v-list>
     </v-navigation-drawer>
     <v-content>
@@ -47,8 +56,12 @@ export default {
   data() {
     return {
       drawer: null,
-      brightness: 10
+      brightness: 10,
+      config: null
     };
+  },
+  mounted() {
+    this.$http.get('/config').then(res => (this.config = res.data.config))
   },
   computed: {
   },

@@ -4,8 +4,9 @@ import axios from "axios";
 
 Vue.use(Vuex);
 
+// BASE_URL="http://192.168.2.109:5000" yarn serve
 const base = axios.create({
-  baseURL: "http://192.168.2.109:5000"
+  baseURL: process.env.VUE_APP_BASE_URL || ""
 });
 
 Vue.prototype.$http = base;
@@ -25,6 +26,9 @@ export default new Vuex.Store({
     },
     pushProgram: (state, { task }) => {
       state.program.push(task);
+    },
+    clearProgram: state => {
+      state.program = [];
     }
   },
   actions: {
@@ -41,7 +45,7 @@ export default new Vuex.Store({
     },
     sendTask: async function(context, { task, duration = null }) {
       const params = task.arguments;
-      //if (params.duration_s && duration) params.duration_s = duration;
+      if (params.duration_s && duration) params.duration_s = duration;
       base.get(`task/${task.name}`, { params }).then(
         response => {
           context.commit("setLastTask", { task: response.data.data });
@@ -68,6 +72,9 @@ export default new Vuex.Store({
     },
     addToProgram: async function(context, task) {
       context.commit("pushProgram", { task });
+    },
+    clear: async function(context) {
+      context.commit("clearProgram");
     }
   }
 });

@@ -41,18 +41,45 @@ Deploy code on the pi (auto synchronize in develoment : keep locel file deployed
 
 ### Run the `service`
 
+Flask service that serve generic celery task dispatcher on port `5000` **and** the static build of the vue app. **This script auto reload the service when `service.py` change**.
+
+**Warning: On the pi !**
+
 ```bash
 ssh pi@<ip>
 cd leds/
 ./run-service.sh
 ```
 
+Open http://pi-IP:5000/queue to see the current worker queue.
+
 ### Run worker `worker`
 
-Worker need to be run as root ta access the hardware.
+Worker need to be run as root ta access the hardware. **This script auto reload the celery worker when `worker.py` change or crash**.
+
+**Warning: On the pi !**
 
 ```bash
 ssh pi@<ip>
 cd leds/
 sudo ./run-worker.sh
+```
+
+### Run the `vuejs webapp`
+
+#### Run locally
+
+```bash
+cd rpi-ws281x-vue
+yarn serve
+```
+
+open http://localhost:8080
+
+#### Run on the pi
+
+Make sure the `sync.sh` script is running, the build result will be generated locaaly then sync to the `pi` then serve by the flask app.
+
+```bash
+yarn build
 ```

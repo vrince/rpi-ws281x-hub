@@ -26,14 +26,14 @@
       <v-btn
         v-if="select"
         color="success"
-        fab
+        fab small
         @click="sendTask({ task: select, duration: 10 })"
         ><v-icon>mdi-play</v-icon></v-btn
       >
       <v-btn v-if="select" color="primary" fab @click="saveTask"
         ><v-icon>mdi-plus</v-icon></v-btn
       >
-      <v-btn v-if="select" color="error" fab @click="select = null"
+      <v-btn v-if="select" color="error" fab small @click="select = null"
         ><v-icon>mdi-delete</v-icon></v-btn
       >
     </v-card-title>

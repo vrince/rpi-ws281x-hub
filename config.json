@@ -1,0 +1,10 @@
+{
+    "led_count": 12,
+    "modules": [[0,11]],
+    "pin": 18,
+    "frequency": 800000,
+    "dma": 10,
+    "invert": false,
+    "brightness": 20,
+    "channel": 0
+}

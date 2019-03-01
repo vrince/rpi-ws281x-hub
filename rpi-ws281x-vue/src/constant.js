@@ -6,8 +6,18 @@ export const tasks = [
     arguments: {
       from_color: "#ffa500",
       to_color: "#ff4500",
-      duration_s: 10,
-      wait_ms: 10
+      duration_s: 60,
+      wait_ms: 12
+    }
+  },
+  {
+    title: "star",
+    name: "colorStar",
+    icon: "mdi-star",
+    arguments: {
+      color: "#fff",
+      duration_s: 60,
+      wait_ms: 100
     }
   },
   {
@@ -15,16 +25,17 @@ export const tasks = [
     name: "rainbow",
     icon: "mdi-palette",
     arguments: {
-      duration_s: 10,
-      wait_ms: 10
+      duration_s: 60,
+      wait_ms: 30
     }
   },
   {
-    title: "gradient",
+    title: "Wipe",
     name: "colorWipe",
-    icon: "mdi-gauge",
+    icon: "mdi-broom",
     arguments: {
       color: "#ffa500",
+      duration_s: 60,
       wait_ms: 50
     }
   },
@@ -33,7 +44,7 @@ export const tasks = [
     name: "rainbowCycle",
     icon: "mdi-pinwheel",
     arguments: {
-      duration_s: 10,
+      duration_s: 60,
       wait_ms: 25
     }
   },
@@ -42,7 +53,7 @@ export const tasks = [
     name: "colorRandom",
     icon: "mdi-auto-fix",
     arguments: {
-      duration_s: 10,
+      duration_s: 60,
       wait_ms: 25
     }
   },

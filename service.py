@@ -7,7 +7,9 @@ app = Flask(__name__,
 CORS(app)
 
 from celery import Celery
-celery = Celery('tasks', broker='redis://localhost')
+celery = Celery('tasks', backend='redis://localhost', broker='redis://localhost')
+
+import json
 
 @app.route('/')
 def root():
@@ -23,6 +25,15 @@ def init():
         'ok': True
         })
 
+@app.route('/config')
+def config():
+    with open('config.json') as f:
+        config = json.load(f)
+    return jsonify({
+        'config': config,
+        'ok': True
+        })
+
 @app.route('/task/<task_name>')
 def task(task_name):
     arguments = {}
@@ -31,8 +42,8 @@ def task(task_name):
             arguments[key] = float(request.args[key])
         except ValueError: 
             arguments[key] = request.args[key]
-    print(arguments)
     result = celery.send_task('worker.{}'.format(task_name),(),arguments)
+    result.forget()
     return jsonify({
         'task': {
             'name': task_name,

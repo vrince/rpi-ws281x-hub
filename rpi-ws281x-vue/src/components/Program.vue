@@ -13,6 +13,17 @@
         </v-flex>
       </v-layout>
     </v-container>
+     <v-btn
+      fab
+      :disabled="!program.length"
+      large
+      fixed
+      bottom
+      left
+      color="error"
+      @click="clear"
+      ><v-icon>mdi-delete</v-icon></v-btn
+    >
     <v-btn
       fab
       :disabled="!program.length"
@@ -39,6 +50,6 @@ export default {
   },
   data: () => ({}),
   computed: { ...mapState(["queue", "program"]) },
-  methods: { ...mapActions(["run"]) }
+  methods: { ...mapActions(["run","clear"]) }
 };
 </script>
