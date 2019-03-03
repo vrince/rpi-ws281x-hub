@@ -1,7 +1,5 @@
 <template>
-  <div>
-    Settings
-  </div>
+  <div>Settings</div>
 </template>
 
 <script>
@@ -9,3 +7,4 @@ export default {
   data: () => ({})
 };
 </script>
+ 

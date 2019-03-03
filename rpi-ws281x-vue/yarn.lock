@@ -7691,6 +7691,11 @@ vue-cli-plugin-vuetify@^0.4.6:
   resolved "https://registry.yarnpkg.com/vue-cli-plugin-vuetify/-/vue-cli-plugin-vuetify-0.4.6.tgz#91c4534d17bc04bbd6f41eacdb6ff49be0f59f2b"
   integrity sha512-vkai2B3XqanmscUYSioIjJkU7bzBZGl9mCuIISEZtaDy3qWEkF143UGdJ72u/rGuOytLxpV+9B+FNoV93qlnag==
 
+vue-dragscroll@^1.8.3:
+  version "1.8.3"
+  resolved "https://registry.yarnpkg.com/vue-dragscroll/-/vue-dragscroll-1.8.3.tgz#ddde45d2bf5f02c1d27a748f6f0a3fd4950913cb"
+  integrity sha512-Rp9FquSwgleZVwQ/2w1zRsfBBCFfTwbpFR2xPvi+Y2GV5RQ/1rVfZoKtncqxMwrXHAdHaTtDraYSh1Lc10dLqA==
+
 vue-eslint-parser@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/vue-eslint-parser/-/vue-eslint-parser-2.0.3.tgz#c268c96c6d94cfe3d938a5f7593959b0ca3360d1"

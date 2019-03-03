@@ -134,7 +134,7 @@ def colorStar(color='white', wait_ms=100, duration_s=10):
             strip.setPixelRGB(i, C('black'))
             position = position + speed
             speed = speed * random.uniform(1, 1.01)
-            i = int(position) % 12
+            i = int(position) % strip.numPixels()
             c = C(rgb=tuple([max(0, e * life - 0.01) for e in C(c).rgb]))
             strip.setPixelRGB(i, c)
             strip.show()

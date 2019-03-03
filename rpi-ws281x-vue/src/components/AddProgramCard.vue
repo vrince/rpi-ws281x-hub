@@ -1,82 +1,71 @@
 <template>
   <v-card class="white--text">
-    <v-card-title primary-title class="pa-2">
-      <v-menu bottom right>
-        <v-btn slot="activator" fab dark large class="mr-3">
-          <v-icon v-if="select">{{ select.icon }}</v-icon>
-          <v-icon v-else>mdi-plus</v-icon>
-        </v-btn>
-        <v-list two-line>
-          <v-list-tile
+    <v-card-text class="pl-0 pr-0">
+      <div v-dragscroll.x="true" :style="'{ width:100%; overflow: scroll; overflow: hidden;}'">
+        <v-layout row>
+          <v-btn
+            fab
+            dark
+            large
+            round
+            :color="select && task.title === select.title ? 'primary' : ''"
             v-for="(task, i) in tasksList"
             :key="i"
+            class="ma-4 elevation-8"
             @click="createTask(task)"
           >
-            <v-list-tile-action>
-              <v-icon>{{ task.icon }}</v-icon>
-            </v-list-tile-action>
-            <v-list-tile-content>
-              <v-list-tile-title>{{ task.title }}</v-list-tile-title>
-              <v-list-tile-sub-title>{{ task.name }}</v-list-tile-sub-title>
-            </v-list-tile-content>
-          </v-list-tile>
-        </v-list>
-      </v-menu>
-      <v-spacer />
-      <v-btn
-        v-if="select"
-        color="success"
-        fab small
-        @click="sendTask({ task: select, duration: 10 })"
-        ><v-icon>mdi-play</v-icon></v-btn
-      >
-      <v-btn v-if="select" color="primary" fab @click="saveTask"
-        ><v-icon>mdi-plus</v-icon></v-btn
-      >
-      <v-btn v-if="select" color="error" fab small @click="select = null"
-        ><v-icon>mdi-delete</v-icon></v-btn
-      >
-    </v-card-title>
+            <v-icon>{{ task.icon }}</v-icon>
+          </v-btn>
+        </v-layout>
+      </div>
+    </v-card-text>
     <v-card-text v-if="select">
       <v-container class="pa-0" grid-list-md text-xs-center>
         <v-layout row wrap ma-0 pa-0>
-          <v-flex xs12 v-if="select && select.arguments.duration_s">
-            <v-slider
-              v-model="select.arguments.duration_s"
-              :max="600"
-              :min="10"
-              step="10"
-              ticks="always"
-              tick-size="2"
-              prepend-icon="mdi-timer"
-              thumb-label="always"
-            >
-            </v-slider>
+          <v-flex xs8>
+            <v-flex xs12 v-if="select.arguments.duration_s">
+              <v-slider
+                v-model="select.arguments.duration_s"
+                :max="600"
+                :min="30"
+                step="30"
+                ticks="always"
+                tick-size="2"
+                prepend-icon="mdi-timer"
+                thumb-label="always"
+              ></v-slider>
+            </v-flex>
+            <v-flex xs12 v-if="select.arguments.wait_ms">
+              <v-slider
+                v-model="select.arguments.wait_ms"
+                :max="100"
+                :min="5"
+                step="5"
+                ticks="always"
+                tick-size="2"
+                prepend-icon="mdi-play-speed"
+                thumb-label="always"
+              ></v-slider>
+            </v-flex>
           </v-flex>
-          <v-flex xs12 v-if="select && select.arguments.wait_ms">
-            <v-slider
-              v-model="select.arguments.wait_ms"
-              :max="100"
-              :min="10"
-              step="5"
-              ticks="always"
-              tick-size="2"
-              prepend-icon="mdi-play-speed"
-              thumb-label="always"
-            >
-            </v-slider>
+          <v-flex xs4>
+            <v-btn v-if="select" color="success" fab small @click="testTask">
+              <v-icon>mdi-play</v-icon>
+            </v-btn>
+            <v-btn v-if="select" color="error" fab small @click="select = null">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+            <v-btn v-if="select" color="primary" fab large @click="saveTask">
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
           </v-flex>
           <v-flex v-for="color in colorArgs" :key="color" xs12>
-            <v-card
-              class="pa-2"
-              :color="select.arguments[color]"
-              elevation="10"
-            >
+            <v-card class="pa-2" :color="select.arguments[color]" elevation="8">
               <swatches
                 v-model="select.arguments[color]"
                 shapes="circles"
                 inline
-                :colors="colors"
+                colors="text-advanced"
               ></swatches>
             </v-card>
           </v-flex>
@@ -90,15 +79,20 @@
 import { mapState, mapActions } from "vuex";
 import Swatches from "vue-swatches";
 import "vue-swatches/dist/vue-swatches.min.css";
+import { dragscroll } from "vue-dragscroll";
 import { tasks } from "../constant";
 
 export default {
+  directives: {
+    dragscroll
+  },
   components: {
     Swatches
   },
   data: () => ({
     select: null,
     color: null,
+    swipeDirection: "None",
     colors: [
       "#FF0000",
       "#FF8000",
@@ -129,6 +123,12 @@ export default {
   },
   methods: {
     ...mapActions(["sendTask", "addToProgram"]),
+    testTask: function() {
+      this.sendTask({
+        task: this.select,
+        duration: 10
+      });
+    },
     createTask: function(task) {
       this.select = JSON.parse(JSON.stringify(task));
     },

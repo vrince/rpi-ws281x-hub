@@ -1,22 +1,19 @@
 <template>
   <v-card class="white--text">
     <v-card-title primary-title class="pa-2">
-      <v-btn fab dark large class="mr-3">
+      <v-btn fab dark large round class="mr-3">
         <v-icon>{{ task.icon }}</v-icon>
       </v-btn>
-      <v-btn
-        v-for="(color, i) in colors"
-        :key="i"
-        :color="color"
-        fab
-      ></v-btn>
-      <v-chip v-if="duration" class="headline font-weight-light"
-        ><v-icon left>mdi-timer</v-icon>{{ duration }}</v-chip
-      >
-      <v-chip v-if="speed" class="headline font-weight-light"
-        ><v-icon left>mdi-play-speed</v-icon>{{ speed }}</v-chip
-      >
-      <v-spacer />
+      <v-btn v-for="(color, i) in colors" :key="i" :color="color" fab></v-btn>
+      <v-chip label v-if="duration" class="headline font-weight-light">
+        <v-icon left>mdi-timer</v-icon>
+        {{ duration }}
+      </v-chip>
+      <v-chip label v-if="speed" class="headline font-weight-light">
+        <v-icon left>mdi-play-speed</v-icon>
+        {{ speed }}
+      </v-chip>
+      <v-spacer/>
     </v-card-title>
   </v-card>
 </template>

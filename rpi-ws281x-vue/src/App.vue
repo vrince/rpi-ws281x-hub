@@ -11,33 +11,27 @@
     <v-navigation-drawer v-model="drawer" fixed right app>
       <v-list>
         <v-list-tile>
-          <v-toolbar-title class="headline">
-            Settings
-          </v-toolbar-title>
+          <v-toolbar-title class="headline">Settings</v-toolbar-title>
         </v-list-tile>
         <v-list-tile>
-          <v-toolbar-title class="font-weight-light">
-            Brightness
-          </v-toolbar-title>
+          <v-toolbar-title class="font-weight-light">Brightness</v-toolbar-title>
         </v-list-tile>
         <v-list-tile>
-            <v-slider
-              v-model="brightness"
-              :min="5"
-              step="5"
-              ticks="always"
-              prepend-icon="mdi-brightness-5"
-              @change="sentBrightness"
-            ></v-slider>
+          <v-slider
+            v-model="brightness"
+            :min="5"
+            step="5"
+            ticks="always"
+            prepend-icon="mdi-brightness-5"
+            @change="sentBrightness"
+          ></v-slider>
         </v-list-tile>
         <v-list-tile>
-          <v-toolbar-title class="font-weight-light">
-            Config
-          </v-toolbar-title>
+          <v-toolbar-title class="font-weight-light">Config</v-toolbar-title>
         </v-list-tile>
         <v-list-tile v-for="(value,key) in config" :key="key">
           {{key}}
-          <soan class="font-weight-light ma-2">{{value}}</soan>
+          <span class="font-weight-light ma-2">{{value}}</span>
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
@@ -61,14 +55,18 @@ export default {
     };
   },
   mounted() {
-    this.$http.get('/config').then(res => (this.config = res.data.config))
+    this.$http.get("/config").then(res => (this.config = res.data.config));
   },
-  computed: {
-  },
+  computed: {},
   methods: {
     ...mapActions(["sendTask"]),
     sentBrightness: function() {
-      this.sendTask({ task: {name: 'brighteness', arguments: {value: this.brightness / 100}}})
+      this.sendTask({
+        task: {
+          name: "brighteness",
+          arguments: { value: this.brightness / 100 }
+        }
+      });
     }
   }
 };

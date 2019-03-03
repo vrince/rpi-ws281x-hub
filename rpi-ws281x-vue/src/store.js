@@ -32,7 +32,7 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    loadQueue: async function(context) {
+    loadQueue: async function (context) {
       base.get("/queue").then(
         response => {
           context.commit("setQueue", { queue: response.data.data });
@@ -43,8 +43,8 @@ export default new Vuex.Store({
         }
       );
     },
-    sendTask: async function(context, { task, duration = null }) {
-      const params = task.arguments;
+    sendTask: async function (context, { task, duration = null }) {
+      let params = JSON.parse(JSON.stringify(task.arguments));
       if (params.duration_s && duration) params.duration_s = duration;
       base.get(`task/${task.name}`, { params }).then(
         response => {
@@ -56,7 +56,7 @@ export default new Vuex.Store({
         }
       );
     },
-    run: async function({ state }) {
+    run: async function ({ state }) {
       console.log(state.program);
       for (const key in state.program) {
         const task = state.program[key];
@@ -70,10 +70,10 @@ export default new Vuex.Store({
         );
       }
     },
-    addToProgram: async function(context, task) {
+    addToProgram: async function (context, task) {
       context.commit("pushProgram", { task });
     },
-    clear: async function(context) {
+    clear: async function (context) {
       context.commit("clearProgram");
     }
   }
