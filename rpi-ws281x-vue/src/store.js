@@ -57,7 +57,6 @@ export default new Vuex.Store({
       );
     },
     run: async function ({ state }) {
-      console.log(state.program);
       for (const key in state.program) {
         const task = state.program[key];
         base.get(`task/${task.name}`, { params: task.arguments }).then(
