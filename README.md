@@ -1,10 +1,27 @@
-# RPi WS281x Python
+# RPi WS281x Hub
 
-This is the official Python distribution of the ws281x library: http://github.com/richardghirst/rpi_ws281x
+This project is meant to manage `ws281x` leds on the RPi. It's compose of 3 parts, a web app (`vuejs`), a web services (`python flask`) that dispatch ascronous led tasks to a worker (`celery worker`). Celery queue is serve by redis (`docker arm32v7/redis`). 
 
-# Installing
+```mermaid
+graph LR
+    0((user)) -- finger --> 1
+    subgraph vrince/rpi281xhub
+    1(App.vue) == http ==> 2(service.py)
+    2 == redis ==> 3(worker.py)
+    3 == rpi-ws281x ==> 4(gpio)
+    end
+    4 -- wire --> 5((leds))
+```
 
-## From pip
+github user you can go gitlab enjoy the graph ...
+
+This is tested on the RPi3 with a adafruits neopixels.
+
+## Installing
+
+## Using
+
+## Developing
 
 Most users should simply run:
 

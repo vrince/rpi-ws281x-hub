@@ -1,6 +1,5 @@
 {
     "led_count": 48,
-    "modules": [[0,11]],
     "pin": 18,
     "frequency": 800000,
     "dma": 10,

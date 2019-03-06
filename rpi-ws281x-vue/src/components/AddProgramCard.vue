@@ -12,7 +12,7 @@
             :color="select && task.title === select.title ? 'primary' : ''"
             v-for="(task, i) in tasksList"
             :key="i"
-            class="ma-4 mb-4 mt-4 elevation-8"
+            class="ml-4 mr-4 mb-4 mt-4 elevation-8"
             @click="selectTask(task)"
           >
             <v-icon>{{ task.icon }}</v-icon>
@@ -164,6 +164,7 @@ export default {
   padding: 0px;
   margin-left: calc(50% - 50vw);
   width: 100vw;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   background-color: rgba(255, 255, 255, 0.199);
 }
 .scrollDragZone {
