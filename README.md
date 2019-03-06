@@ -19,6 +19,28 @@ This is tested on the RPi3 with a adafruits neopixels.
 
 ## Installing
 
+On the pi run the following commands.
+
+### Docker
+
+```bash
+curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
+sudo usermod -aG docker pi
+newgrp docker
+```
+
+### Redis ([source](https://thisdavej.com/how-to-install-redis-on-a-raspberry-pi-using-docker/#option-1---create-redis-server-for-localhost-requests-only))
+
+```bash
+docker run --name redis -d -p 6379:6379 --restart unless-stopped arm32v7/redis --appendonly yes --maxmemory 512mb --tcp-backlog 128
+```
+
+### RPi ws281x Hub
+
+```bash
+docker run --name redis -d -p 6379:6379 --restart unless-stopped arm32v7/redis --appendonly yes --maxmemory 512mb --tcp-backlog 128
+```
+
 ## Using
 
 ## Developing

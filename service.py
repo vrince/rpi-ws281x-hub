@@ -7,7 +7,10 @@ app = Flask(__name__,
 CORS(app)
 
 from celery import Celery
-celery = Celery('tasks', backend='redis://localhost', broker='redis://localhost')
+celery = Celery(
+    'tasks',
+    backend=os.getenv('REDIS_URL', 'redis://localhost'),
+    broker=os.getenv('REDIS_URL', 'redis://localhost'))
 
 import json
 
