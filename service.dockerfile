@@ -2,7 +2,7 @@ FROM arm32v7/python:3.6-slim
 RUN pip3 install flask flask-cors celery redis
 ADD ./rpi-ws281x-vue/dist /opt/rpi-ws281x-vue/dist
 ADD ./service.py /opt/service.py
-ADD ./config.json /opt/service.json
+ADD ./config.json /opt/config.json
 WORKDIR /opt
 EXPOSE 5000
 ENV FLASK_APP=/opt/service.py

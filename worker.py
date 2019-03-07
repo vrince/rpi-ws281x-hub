@@ -1,10 +1,4 @@
-#!/usr/bin/env python3
-# NeoPixel library strandtest example
-# Author: Tony DiCola (tony@tonydicola.com)
-#
-# Direct port of the Arduino NeoPixel library strandtest example.  Showcases
-# various animations on a strip of NeoPixels.
-
+import os
 import time
 import argparse
 import random
@@ -16,7 +10,7 @@ from rpi_ws281x import *
 
 from celery import Celery
 
-celery = Celery('tasks', broker='redis://localhost')
+celery = Celery('tasks',broker=os.getenv('REDIS_URL', 'redis://localhost'))
 
 class MyPixelStrip(PixelStrip):
     def __init__(self, num=12, pin=18, freq_hz=800000, dma=10, invert=False, brightness=255, channel=0, strip_type=None, gamma=None):
