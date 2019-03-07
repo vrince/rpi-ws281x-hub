@@ -10,20 +10,7 @@ You can set task duration and speed of ~6 led effects.
 
 ## Architecture
 
-```mermaid
-graph LR
-    0((user)) -- finger --> 1
-    subgraph vrince/rpi-ws281x-service
-    1(App.vue) == http ==> 2(service.py)
-    end
-    subgraph vrince/rpi-ws281x-worker
-    2 == redis ==> 3(worker.py)
-    3 == rpi-ws281x ==> 4(gpio)
-    end
-    4 -- wire --> 5((leds))
-```
-
-github user you can go gitlab enjoy the graph ...
+![](https://mermaidjs.github.io/mermaid-live-editor/#/view/eyJjb2RlIjoiZ3JhcGggTFJcbiAgICAwKCh1c2VyKSkgLS0gZmluZ2VyIC0tPiAxXG4gICAgc3ViZ3JhcGggdnJpbmNlL3JwaS13czI4MXgtc2VydmljZVxuICAgIDEoQXBwLnZ1ZSkgPT0gaHR0cCA9PT4gMihzZXJ2aWNlLnB5KVxuICAgIGVuZFxuICAgIHN1YmdyYXBoIHZyaW5jZS9ycGktd3MyODF4LXdvcmtlclxuICAgIDIgPT0gcmVkaXMgPT0-IDMod29ya2VyLnB5KVxuICAgIDMgPT0gcnBpLXdzMjgxeCA9PT4gNChncGlvKVxuICAgIGVuZFxuICAgIDQgLS0gd2lyZSAtLT4gNSgobGVkcykpXG4iLCJtZXJtYWlkIjp7fX0)
 
 This is tested on the RPi3 with a adafruits neopixels.
 
