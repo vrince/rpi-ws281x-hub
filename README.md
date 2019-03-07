@@ -1,6 +1,14 @@
 # RPi WS281x Hub
 
-This project is meant to manage `ws281x` leds on the RPi. It's compose of 3 parts, a web app (`vuejs`), a web services (`python flask`) that dispatch ascronous led tasks to a worker (`celery worker`). Celery queue is serve by redis (`docker arm32v7/redis`). All that microservice style using containerized application. 
+This project is meant to manage `ws281x` leds on the RPi. It's compose of 3 parts, a web app (`vuejs`), a web services (`python flask`) that dispatch a sequence of led tasks to a worker (`celery worker`). Celery queue is serve by redis (`docker arm32v7/redis`). All that running on the rpi, microservice style using containerized application. 
+
+## Application
+
+![](media/rpi-ws281x-vue.gif)
+
+You can set task duration and speed of ~6 led effects.
+
+## Architecture
 
 ```mermaid
 graph LR
@@ -136,9 +144,9 @@ Make sure the `sync.sh` script is running, the build result will be generated lo
 yarn build
 ```
 
-### Docker
+### Docker build
 
-Fo those a litle familiar with docker you'll be able to build docker images simply.
+For those a litle familiar with docker you'll be able to build docker images simply.
 
 ## Credits
 
