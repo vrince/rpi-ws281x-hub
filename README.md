@@ -23,11 +23,12 @@ All of it is overkill for what is does.
 
 ## Installing
 
-On the pi run the following commands.
+On the pi run the following commands, **no need to clone the code**.
 
 ### Docker & docker-compose
 
 ```bash
+ssh pi@<pi-ip>
 curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
 sudo usermod -aG docker pi
 newgrp docker
@@ -36,14 +37,14 @@ sudo pip3 install docker-compose
 
 ### The stack
 
-Then enjoy the docker / docker-compose power.
+Get and enjoy the docker / docker-compose power.
 
 ```bash
-wget 
+wget https://raw.githubusercontent.com/vrince/rpi-ws281x-hub/master/docker-compose.yml
 docker-compose up -d
 ```
 
-:tada: you shoul be able to open http://<pi-ip>:5000 and send leds commands.
+:tada: you shoul be able to open `http://<pi-ip>:5000` and send leds commands.
 
 To see logs while running.
 
@@ -69,7 +70,7 @@ cat ~/.ssh/pi_id_rsa.pub | ssh pi@<pi-ip> "mkdir -p ~/.ssh && chmod 700 ~/.ssh &
 ./sync <pi-ip>
 ```
 
-## On the pi
+All the following (execpt the `vueapp`) is appening on th pi so ssh to it.
 
 ```bash
 ssh pi@<pi-ip>
@@ -97,12 +98,12 @@ docker run --name redis -d -p 6379:6379 --restart unless-stopped arm32v7/redis -
 Flask service that serve generic celery task dispatcher on port `5000` **and** the static build of the vue app. **This script auto reload the service when `service.py` change**.
 
 ```bash
-ssh pi@<ip>
+ssh pi@<pi-ip>
 cd rpi-ws281x-hub
 ./run-service.sh
 ```
 
-Open http://<pi-ip>:5000/queue to see the current worker queue.
+Open `http://<pi-ip>:5000/queue` to see the current worker queue.
 
 ### Run worker `worker`
 
@@ -114,7 +115,7 @@ cd rpi-ws281x-hub
 sudo ./run-worker.sh
 ```
 
-### Run the `vuejs webapp`
+### Run the `vueapp`
 
 #### Run locally
 
@@ -127,7 +128,7 @@ VUE_APP_BASE_URL="http://<pi-ip>:5000" yarn serve
 
 open http://localhost:8080
 
-#### Deploy weeb app on the pi
+#### Deploy the `vueapp` on the pi
 
 Make sure the `sync.sh` script is running, the build result will be generated locaaly then sync to the `pi` then serve by the flask app.
 
