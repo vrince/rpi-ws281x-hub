@@ -25,7 +25,7 @@
       <v-card-text v-if="select">
         <v-container class="pa-0" grid-list-md text-xs-center>
           <v-layout row wrap ma-0 pa-0>
-            <v-flex xs9>
+            <v-flex xs8>
               <v-flex xs12 v-if="select.arguments.duration_s">
                 <v-slider
                   v-model="duration"
@@ -50,7 +50,7 @@
                 ></v-slider>
               </v-flex>
             </v-flex>
-            <v-flex xs3>
+            <v-flex xs4>
               <v-flex xs12>
                 <v-btn v-if="select" light fab small @click="testTask">
                   <v-icon>mdi-play</v-icon>

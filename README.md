@@ -75,7 +75,7 @@ This will continously push the code to the pi as you change it on your computer.
 ```
 git clone https://github.com/vrince/rpi-ws281x-hub.git
 cat ~/.ssh/pi_id_rsa.pub | ssh pi@<pi-ip> "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >>  ~/.ssh/authorized_keys"
-./sync <pi-ip>
+./sync.sh <pi-ip>
 ```
 
 All the following (execpt the `vueapp`) is appening on th pi so ssh to it.

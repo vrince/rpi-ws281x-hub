@@ -4,10 +4,12 @@ import axios from "axios";
 
 Vue.use(Vuex);
 
-// BASE_URL="http://192.168.2.109:5000" yarn serve
+// VUE_APP_BASE_URL="http://192.168.2.109:5000" yarn serve
 const base = axios.create({
   baseURL: process.env.VUE_APP_BASE_URL || ""
 });
+
+console.log(process.env.VUE_APP_BASE_URL);
 
 Vue.prototype.$http = base;
 

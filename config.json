@@ -1,6 +1,6 @@
 {
-    "led_count": 48,
-    "pin": 18,
+    "led_count": 12,
+    "pin": 12,
     "frequency": 800000,
     "dma": 10,
     "invert": false,
