@@ -72,7 +72,7 @@ docker-compose stop
 
 This will continously push the code to the pi as you change it on your computer.
 
-```
+```bash
 git clone https://github.com/vrince/rpi-ws281x-hub.git
 cat ~/.ssh/pi_id_rsa.pub | ssh pi@<pi-ip> "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >>  ~/.ssh/authorized_keys"
 ./sync.sh <pi-ip>
@@ -87,7 +87,7 @@ ssh pi@<pi-ip>
 ### Dependencies
 
 ```bash
-sudo pip3 install rpi_ws281x colour flask flask-cors celery redis 
+sudo pip3 install rpi_ws281x colour flask flask-cors celery redis
 ```
 
 ### Redis in docker

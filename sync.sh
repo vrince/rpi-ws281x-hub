@@ -7,5 +7,6 @@ echo ""
 SOURCE=$(pwd)
 DESTINATION=pi@${IP}:/home/pi/rpi-ws281x-hub
 while inotifywait -r -e modify,create,delete ${SOURCE}; do
+    echo "rsync -avz --exclude '.*' --exclude 'rpi-ws281x-vue/node_modules/*' -e ssh  ${SOURCE}/ ${DESTINATION}"
     rsync -avz --exclude '.*' -e ssh  ${SOURCE}/ ${DESTINATION}
 done
