@@ -155,3 +155,24 @@ For those a litle familiar with docker you'll be able to build docker images sim
 At the very beging it was a fork of RPi-ws281x-python, I basically hack the `SK6812_strandtest.py` file to make the `worker.py` credit goes to [Gadgetoid](https://github.com/Gadgetoid) !
 
 ### Redis on docker ([source](https://thisdavej.com/how-to-install-redis-on-a-raspberry-pi-using-docker/#option-1---create-redis-server-for-localhost-requests-only))
+
+
+## Simple Service API
+
+Copy from : https://github.com/smirnov-am/flask-bg-tasks
+
+Main file `app.py` task are in `tasks.py` setup of the webserver is is `uwigi.ini`.
+
+To run the server :
+
+```bash
+uwsgi --http-socket :5000 --plugin python3 --module app:app --ini uwsgi.ini
+```
+
+Dependencies :
+
+```bash
+python3 -m venv .env 
+source .env/bin/activate
+pip install flask uwsgi
+```
