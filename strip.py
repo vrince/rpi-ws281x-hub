@@ -31,6 +31,10 @@ print(config)
 
 frame_time = 30 # ms
 
+# PWM pins
+# 12 --> https://pinout.xyz/pinout/pin32_gpio12#
+# 18 --> https://pinout.xyz/pinout/pin12_gpio18#
+
 # Create NeoPixel object with appropriate configuration.
 strip = ColorPixelStrip(
     config["led_count"], # Number of LED pixels.
@@ -144,22 +148,24 @@ def colorStar(color='white', wait_ms=100, duration_s=10):
 def rainbow(wait_ms=20, duration_s=10):
     """Draw rainbow that fades across all pixels at once."""
     start = timer()
+    j = 0
     while (timer() - start) < duration_s:
-        for j in range(256):
-            for i in range(strip.numPixels()):
-                strip.setPixelColor(i, wheel((i+j) & 255))
-            strip.show()
-            time.sleep(wait_ms/1000)
+        j = 0 if j >= 255 else j+1
+        for i in range(strip.numPixels()):
+            strip.setPixelColor(i, wheel((i+j) & 255))
+        strip.show()
+        time.sleep(wait_ms/1000)
 
 def rainbowCycle(wait_ms=20, duration_s=10):
     """Draw rainbow that uniformly distributes itself across all pixels."""
     start = timer()
+    j = 0
     while (timer() - start) < duration_s:
-        for j in range(256):
-            for i in range(strip.numPixels()):
-                strip.setPixelColor(i, wheel((int(i * 256 / strip.numPixels()) + j) & 255))
-            strip.show()
-            time.sleep(wait_ms/1000)
+        j = 0 if j >= 255 else j+1
+        for i in range(strip.numPixels()):
+            strip.setPixelColor(i, wheel((int(i * 256 / strip.numPixels()) + j) & 255))
+        strip.show()
+        time.sleep(wait_ms/1000)
 
 def theaterChaseRainbow(wait_ms=50, duration_s=10):
     """Rainbow movie theater light style chaser animation."""
