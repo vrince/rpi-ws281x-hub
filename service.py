@@ -1,33 +1,33 @@
+import json
 import os
 from flask import Flask, jsonify, request, redirect, url_for
 from flask_cors import CORS
+from strip import *
+from tasks import tasks
+from multiprocessing import Process
+
 
 app = Flask(__name__,
-            static_url_path='', 
+            static_url_path='',
             static_folder='rpi-ws281x-vue/dist')
 CORS(app)
 
-from celery import Celery
-celery = Celery(
-    'tasks',
-    backend=os.getenv('REDIS_URL', 'redis://localhost'),
-    broker=os.getenv('REDIS_URL', 'redis://localhost'))
 
-import json
+payload = list()
+
 
 @app.route('/')
 def root():
     return redirect(url_for('static', filename='index.html'))
 
-@app.route('/queue')
-def init():
-    inspect = celery.control.inspect()
+
+@app.route('/current')
+def current():
     return jsonify({
-        'scheduled': inspect.scheduled(), 
-        'active': inspect.active(), 
-        'reserved': inspect.reserved(), 
+        'payload': payload,
         'ok': True
-        })
+    })
+
 
 @app.route('/config')
 def config():
@@ -36,23 +36,52 @@ def config():
     return jsonify({
         'config': config,
         'ok': True
-        })
+    })
+
+
+process = None
+
 
 @app.route('/task/<task_name>')
 def task(task_name):
     arguments = {}
     for key in request.args:
-        try: 
+        try:
             arguments[key] = float(request.args[key])
-        except ValueError: 
+        except ValueError:
             arguments[key] = request.args[key]
-    result = celery.send_task('worker.{}'.format(task_name),(),arguments)
-    result.forget()
+    try:
+        f_task = tasks[task_name]
+    except KeyError:
+        return jsonify({
+            'error': f'task not found, name : {task_name}',
+            'ok': False
+        }), 404
+
+    global process
+    if isinstance(process, Process):
+        process.terminate()
+        process.join()
+    process = Process(target=f_task, kwargs=arguments, daemon=True)
+    process.start()
+
+    # check if started in an ugly way
+    process.join(0.1)
+    if process.exitcode is not None:
+        return jsonify({
+            'task': {
+                'name': task_name,
+                'process_name': str(process.name),
+                'arguments': arguments
+            },
+            'ok': process.exitcode is 0
+        }), 200 if process.exitcode is 0 else 500
+
     return jsonify({
         'task': {
             'name': task_name,
-            'id': str(result),
+            'process_name': str(process.name),
             'arguments': arguments
         },
         'ok': True
-        })
+    })
