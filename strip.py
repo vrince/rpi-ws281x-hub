@@ -74,7 +74,6 @@ def wheel(pos):
 
 
 def clear():
-    global stop
     for i in range(strip.numPixels()):
         print('clear')
         #strip.setPixelRGB(i, C('black'))
@@ -221,4 +220,5 @@ def theaterChase(color, wait_ms=50, duration_s=10):
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelRGB(i+q, C('black'))
 
-# clear()
+
+clear()
