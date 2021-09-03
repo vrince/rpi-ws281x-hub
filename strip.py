@@ -8,11 +8,19 @@ from colour import Color as C
 
 from rpi_ws281x import *
 
-
 class ColorPixelStrip(PixelStrip):
-    def __init__(self, num=12, pin=18, freq_hz=800000, dma=10, invert=False, brightness=255, channel=0, strip_type=None, gamma=None):
-        super().__init__(num, pin, freq_hz, dma, invert,
-                         brightness, channel, strip_type, gamma)
+    def __init__(self,
+                 num=12,
+                 pin=18,
+                 freq_hz=800000,
+                 dma=10,
+                 invert=False,
+                 brightness=255,
+                 channel=0,
+                 strip_type=None,
+                 gamma=None):
+        super().__init__(num, pin, freq_hz, dma, invert, brightness, channel,
+                         strip_type, gamma)
 
     def getConfig(self):
         return self.config
@@ -22,11 +30,10 @@ class ColorPixelStrip(PixelStrip):
         self.setPixelColor(n, Color(*rgb))
 
     def getPixelRGB(self, n):
-        return C(rgb=(
-            (self._led_data[n] >> 16 & 0xff)/255,
-            (self._led_data[n] >> 8 & 0xff)/255,
-            (self._led_data[n] & 0xff)/255)
-        )
+        return C(rgb=((self._led_data[n] >> 16 & 0xff) / 255,
+                      (self._led_data[n] >> 8 & 0xff) / 255,
+                      (self._led_data[n] & 0xff) / 255))
+
 
 
 with open('config.json') as f:
@@ -50,7 +57,7 @@ strip = ColorPixelStrip(
     config["brightness"],  # Set to 0 for darkest and 255 for brightest
     config["channel"])  # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
-# Intialize the library (must be called once before other functions).
+# Initialize the library (must be called once before other functions).
 try:
     strip.begin()
 except RuntimeError:
@@ -70,24 +77,24 @@ def wheel(pos):
         pos -= 170
         return Color(0, pos * 3, 255 - pos * 3)
 
+
 #####
 
 
 def clear():
     for i in range(strip.numPixels()):
-        print('clear')
-        #strip.setPixelRGB(i, C('black'))
-    # strip.show()
+        strip.setPixelRGB(i, C('black'))
+    strip.show()
     print('clear done')
 
 
 def brighteness(value=0.5):
-    value = int(max(0, min(value, 1))*255)
+    value = int(max(0, min(value, 1)) * 255)
     strip.setBrightness(value)
     strip.show()
 
 
-def colorFade(duration_s=1):
+def colorFade(wait_ms=20, duration_s=1):
     start = timer()
     initColors = []
     for i in range(strip.numPixels()):
@@ -102,7 +109,7 @@ def colorFade(duration_s=1):
             color = C(rgb=tuple([e * ratio for e in initColor.rgb]))
             strip.setPixelRGB(i, color)
         strip.show()
-        time.sleep(frame_time/1000.0)
+        time.sleep(wait_ms / 1000.0)
 
 
 def colorWipe(color, wait_ms=50, duration_s=1):
@@ -114,7 +121,7 @@ def colorWipe(color, wait_ms=50, duration_s=1):
             print(f'colorWipe')
             # strip.setPixelRGB(i, C(color) if j % 2 else C('black'))
             # strip.show()
-            time.sleep(wait_ms/1000)
+            time.sleep(wait_ms / 1000)
         j += 1
     print('colorWipe done')
 
@@ -127,7 +134,7 @@ def colorRandom(wait_ms=10, duration_s=1):
         strip.setPixelRGB(
             i, C(rgb=(random.random(), random.random(), random.random())))
         strip.show()
-        time.sleep(random.uniform(0, 2*wait_ms/1000))
+        time.sleep(random.uniform(0, 2 * wait_ms / 1000))
 
 
 def colorFire(from_color='orange', to_color='red', wait_ms=20, duration_s=10):
@@ -141,7 +148,7 @@ def colorFire(from_color='orange', to_color='red', wait_ms=20, duration_s=10):
         color = C(rgb=tuple([e * intensity for e in c.rgb]))
         strip.setPixelRGB(i, color)
         strip.show()
-        time.sleep(random.uniform(0, 2*wait_ms/1000))
+        time.sleep(random.uniform(0, 2 * wait_ms / 1000))
 
 
 def colorStar(color='white', wait_ms=100, duration_s=10):
@@ -163,8 +170,8 @@ def colorStar(color='white', wait_ms=100, duration_s=10):
             c = C(rgb=tuple([max(0, e * life - 0.01) for e in C(c).rgb]))
             strip.setPixelRGB(i, c)
             strip.show()
-            time.sleep(random.uniform(0, wait_ms/1000))
-        time.sleep(random.uniform(0, 100*wait_ms/1000))
+            time.sleep(random.uniform(0, wait_ms / 1000))
+        time.sleep(random.uniform(0, 100 * wait_ms / 1000))
 
 
 def rainbow(wait_ms=20, duration_s=10):
@@ -172,11 +179,11 @@ def rainbow(wait_ms=20, duration_s=10):
     start = timer()
     j = 0
     while (timer() - start) < duration_s:
-        j = 0 if j >= 255 else j+1
+        j = 0 if j >= 255 else j + 1
         for i in range(strip.numPixels()):
-            strip.setPixelColor(i, wheel((i+j) & 255))
+            strip.setPixelColor(i, wheel((i + j) & 255))
         strip.show()
-        time.sleep(wait_ms/1000)
+        time.sleep(wait_ms / 1000)
 
 
 def rainbowCycle(wait_ms=20, duration_s=10):
@@ -184,12 +191,12 @@ def rainbowCycle(wait_ms=20, duration_s=10):
     start = timer()
     j = 0
     while (timer() - start) < duration_s:
-        j = 0 if j >= 255 else j+1
+        j = 0 if j >= 255 else j + 1
         for i in range(strip.numPixels()):
             strip.setPixelColor(
                 i, wheel((int(i * 256 / strip.numPixels()) + j) & 255))
         strip.show()
-        time.sleep(wait_ms/1000)
+        time.sleep(wait_ms / 1000)
 
 
 def theaterChaseRainbow(wait_ms=50, duration_s=10):
@@ -201,11 +208,11 @@ def theaterChaseRainbow(wait_ms=50, duration_s=10):
         j = 0 if j >= 256 else j
         for q in range(3):
             for i in range(0, strip.numPixels(), 3):
-                strip.setPixelColor(i+q, wheel((i+j) % 255))
+                strip.setPixelColor(i + q, wheel((i + j) % 255))
             strip.show()
-            time.sleep(wait_ms/1000.0)
+            time.sleep(wait_ms / 1000.0)
             for i in range(0, strip.numPixels(), 3):
-                strip.setPixelRGB(i+q, C('black'))
+                strip.setPixelRGB(i + q, C('black'))
 
 
 def theaterChase(color, wait_ms=50, duration_s=10):
@@ -214,11 +221,11 @@ def theaterChase(color, wait_ms=50, duration_s=10):
     while (timer() - start) < duration_s:
         for q in range(3):
             for i in range(0, strip.numPixels(), 3):
-                strip.setPixelRGB(i+q, C(color))
+                strip.setPixelRGB(i + q, C(color))
             strip.show()
-            time.sleep(wait_ms/1000.0)
+            time.sleep(wait_ms / 1000.0)
             for i in range(0, strip.numPixels(), 3):
-                strip.setPixelRGB(i+q, C('black'))
+                strip.setPixelRGB(i + q, C('black'))
 
 
 clear()
