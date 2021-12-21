@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌈</text></svg>">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+
+<body>
+  <div id="app">
+    <v-app id="inspire">
+      <v-navigation-drawer v-model="drawer" width="350" app>
+        <v-card elevation="4" class="ma-2 pa-4">
+          <v-card-title>Threads</v-card-title>
+        </v-card>
+        <v-card elevation="4" class="ma-2 pa-4">
+          <v-card-title>WebSocket</v-card-title>
+          <v-card-text>
+            <v-alert v-if="websocket.readyState == 1" type="success" dense>Connected</v-alert>
+            <v-alert v-else type="error" dense>Not connected</v-alert>
+            <v-text-field label="Message" outlined dense v-model="message"></v-text-field>
+            <v-textarea outlined dense label="Console" readonly :value="from_server"></v-textarea>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="from_server = ''">Clear</v-btn>
+            <v-btn text @click="send_message">Send</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-navigation-drawer>
+
+      <v-app-bar app elevation=10>
+        <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+        <v-toolbar-title>rpi-ws281x-hub 🌈</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon v-if="locale != locales[1]" @click="change_locale(1)"> en </v-btn>
+        <v-btn icon v-else @click="change_locale(0)"> fr </v-btn>
+        <v-btn icon @click="invert_colors">
+          <v-icon>mdi-invert-colors</v-icon>
+        </v-btn>
+      </v-app-bar>
+
+      <v-main class="align-center">
+        <v-container class="mt-6">
+          <v-card class="mx-auto" elevation="10" max-width="450" outlined>
+            <v-list-item>
+              <v-list-item-content>
+              </v-list-item-content>
+            </v-list-item>
+          </v-card>
+        </v-container>
+      </v-main>
+    </v-app>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <script src="https://unpkg.com/vue-i18n@8"></script>
+  <script>
+    const messages = {
+      en: {
+        inside: "Inside",
+        outside: "Outside",
+        chart: "Chart"
+      },
+      fr: {
+        inside: "Interieur",
+        outside: "Exterieur",
+        chart: "Graphique"
+      },
+    };
+    const i18n = new VueI18n({ messages: messages });
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify({
+        theme: { dark: localStorage.getItem("dark") || false },
+      }),
+      i18n: i18n,
+      data: () => ({
+        drawer: null,
+        locale: localStorage.getItem("locale") || "fr",
+        locales: ["fr", "en"],
+        websocket: null,
+        message: null,
+        from_server: ""
+      }),
+      computed: {
+      },
+      methods: {
+        invert_colors: function () {
+          this.$vuetify.theme.dark = !this.$vuetify.theme.dark
+          localStorage.setItem("dark", this.$vuetify.theme.dark)
+        },
+        send_message: function () {
+          this.websocket.send(this.message)
+        },
+        on_message: function (event) {
+          console.log(event)
+          this.from_server = `${this.from_server}\n${event.data}`
+        },
+        change_locale: function (index) {
+          this.locale = this.locales[index]
+          this.$i18n.locale = this.locale;
+          localStorage.setItem("locale", this.locale)
+        }
+      },
+      watch: {
+      },
+      created() {
+        this.$i18n.locale = this.locale
+        console.log(window.location.origin)
+        this.websocket = new WebSocket(`${window.location.origin}/ws`.replace("http", "ws"))
+        console.log(this.websocket)
+        this.websocket.onmessage = this.on_message
+        this.websocket.onopen = function (event) {
+          console.log("onopen")
+          console.log(event)
+        }
+      },
+      mounted() {
+      }
+    })
+  </script>
+  <style lang="scss" scoped>
+  </style>
+</body>
+
+</html>
