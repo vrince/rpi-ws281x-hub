@@ -1,11 +1,13 @@
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
 from threading import Thread
 from timeit import default_timer as timer
 import time
 import logging
+import json
 
 from os import path
 
+import asyncio
 import uvicorn
 import click
 
@@ -24,48 +26,16 @@ vue_app = open( module_dir + '/index.html', 'r').read()
 logger = logging.getLogger("gunicorn.error")
 
 # state
+class State(BaseModel):
+    stop_thread: bool = False
+
+state = State()
 thread = None
-stop_thread = False
 
 class Item(BaseModel):
     name: str
     price: float
     is_offer: Optional[bool] = None
-
-
-def event_loop(timeout : float = -1, tick: float = 1):
-    print("event_loop")
-    start = timer()
-    while True:
-        print("tick")
-        if timeout > 0 and timer() - start > timeout:
-            print("timeout")
-            break
-        if stop_thread:
-            break
-        time.sleep(tick)
-
-
-def thread_wrapper(function: Callable, args: dict = {}, callback: Callable = None):
-    print("thread_wrapper")
-    function(**args)
-    if callback is not None:
-        callback()
-
-def on_thread_close():
-    print("on_thread_close")
-    global thread, stop_thread
-    thread = None
-    stop_thread = False
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-@app.get('/app', response_class=HTMLResponse)
-def read_vue_app():
-    return open(module_dir + '/index.html', 'r').read()
-    #return vue_app
 
 class ConnectionManager:
     def __init__(self):
@@ -87,6 +57,63 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# functions
+
+def status():
+    return {
+        'thread': {
+            'running': (thread is not None)
+        },
+        'state': state.dict()
+    }
+
+def event_loop(timeout : float = -1, tick: float = 1):
+    print("event_loop")
+    start = timer()
+    while True:
+        print("tick")
+        if timeout > 0 and timer() - start > timeout:
+            print("timeout")
+            break
+        if state.stop_thread:
+            break
+        time.sleep(tick)
+
+
+def thread_wrapper(function: Callable, args: dict = {}, callback: Callable = None):
+    print("thread_wrapper")
+    function(**args)
+    if callback is not None:
+        callback()
+
+def start_thread(timeout: float = -1, tick: float = 1, effect: str = ""):
+    global thread
+    if not thread:
+        thread = Thread(
+            target=thread_wrapper, 
+            args=(event_loop, {"timeout": timeout, "tick": tick}, on_thread_close),
+            daemon=True)
+        thread.start()
+        asyncio.run(manager.broadcast(json.dumps(status())))
+
+def on_thread_close():
+    print("on_thread_close")
+    global thread, state
+    thread = None
+    state.stop_thread = False
+    asyncio.run(manager.broadcast(json.dumps(status())))
+
+# Routes
+
+@app.get("/")
+def read_root():
+    return status()
+
+@app.get('/app', response_class=HTMLResponse)
+def read_vue_app():
+    return open(module_dir + '/index.html', 'r').read()
+    #return vue_app
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
@@ -96,36 +123,27 @@ async def websocket_endpoint(websocket: WebSocket):
             #await websocket.send_text(f"message text was: {data}")
             await manager.broadcast(f"message text was: {data}")
     except WebSocketDisconnect:
-        manager.disconnect(websocket)  
-
-@app.get("/status")
-def start():
-    global thread
-    return {"running": (thread is not None)}
+        manager.disconnect(websocket)
 
 @app.get("/start")
-def start(timeout: float = -1, tick: float = 1, effect: str = ""):
-    global thread
+def get_start(timeout: float = -1, tick: float = 1, effect: str = ""):
     if not thread:
-        thread = Thread(
-            target=thread_wrapper, 
-            args=(event_loop, {"timeout": timeout, "tick": tick}, on_thread_close))
-        thread.start()
+        start_thread(timeout, tick, effect)
         return {"starting": True}
     else:
         return {"starting": False}
 
 @app.get("/stop")
 def stop():
-    global thread, stop_thread
-    if thread and not stop_thread:
-        stop_thread = True
-    return {"stopping": stop_thread}
+    global thread, state
+    if thread and not state.stop_thread:
+        state.stop_thread = True
+    return {"stopping": state.stop_thread}
 
 #####################################
 
 @app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
+def get_read_item(item_id: int, q: Optional[str] = None):
     return {"item_id": item_id, "q": q}
 
 

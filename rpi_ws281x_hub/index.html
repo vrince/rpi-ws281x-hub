@@ -17,6 +17,11 @@
       <v-navigation-drawer v-model="drawer" width="350" app>
         <v-card elevation="4" class="ma-2 pa-4">
           <v-card-title>Threads</v-card-title>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="start">Start</v-btn>
+            <v-btn text @click="stop">Stop</v-btn>
+          </v-card-actions>
         </v-card>
         <v-card elevation="4" class="ma-2 pa-4">
           <v-card-title>WebSocket</v-card-title>
@@ -102,6 +107,12 @@
           console.log(event)
           this.from_server = `${this.from_server}\n${event.data}`
         },
+        start: function () {
+          fetch("/start")
+        },
+        stop: function () {
+          fetch("/stop")
+        },
         change_locale: function (index) {
           this.locale = this.locales[index]
           this.$i18n.locale = this.locale;
@@ -112,9 +123,7 @@
       },
       created() {
         this.$i18n.locale = this.locale
-        console.log(window.location.origin)
         this.websocket = new WebSocket(`${window.location.origin}/ws`.replace("http", "ws"))
-        console.log(this.websocket)
         this.websocket.onmessage = this.on_message
         this.websocket.onopen = function (event) {
           console.log("onopen")
