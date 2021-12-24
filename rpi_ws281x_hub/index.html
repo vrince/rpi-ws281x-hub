@@ -15,10 +15,24 @@
   <div id="app">
     <v-app id="inspire">
       <v-navigation-drawer v-model="drawer" width="350" app>
+        <v-card-title>Debug</v-card-title>
         <v-card elevation="4" class="ma-2 pa-4">
           <v-card-title>Threads</v-card-title>
+          <v-card-text>
+            <v-alert v-if="running" color="success" dense>
+              <v-progress-circular indeterminate class="mr-6"></v-progress-circular>Running
+            </v-alert>
+            <v-alert v-else color="grey" dense>Not running</v-alert>
+            <v-slider v-model="period" label="period (s)" thumb-label dense min="1" max="60"></v-slider>
+            <v-slider v-model="timeout" label="timeout (s)" thumb-label dense min="1" max="1000"></v-slider>
+            <v-slider v-model="tick" label="tick (ms)" step="100" thumb-label dense min="100" max="1000"></v-slider>
+          </v-card-text>
+          <v-card-actions>
+            <v-progress-linear color="success" :buffer-value="ratio*100" rounded stream></v-progress-linear>
+          </v-card-actions>
           <v-card-actions>
             <v-spacer></v-spacer>
+            <v-btn text @click="status">Status</v-btn>
             <v-btn text @click="start">Start</v-btn>
             <v-btn text @click="stop">Stop</v-btn>
           </v-card-actions>
@@ -26,14 +40,13 @@
         <v-card elevation="4" class="ma-2 pa-4">
           <v-card-title>WebSocket</v-card-title>
           <v-card-text>
-            <v-alert v-if="websocket.readyState == 1" type="success" dense>Connected</v-alert>
+            <v-alert v-if="readyState" type="success" dense>Connected</v-alert>
             <v-alert v-else type="error" dense>Not connected</v-alert>
             <v-text-field label="Message" outlined dense v-model="message"></v-text-field>
-            <v-textarea outlined dense label="Console" readonly :value="from_server"></v-textarea>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn text @click="from_server = ''">Clear</v-btn>
+            <v-switch v-model="debug" insert color="success"></v-switch>
             <v-btn text @click="send_message">Send</v-btn>
           </v-card-actions>
         </v-card>
@@ -83,15 +96,22 @@
       el: '#app',
       vuetify: new Vuetify({
         theme: { dark: localStorage.getItem("dark") || false },
+        treeShake: true
       }),
       i18n: i18n,
       data: () => ({
-        drawer: null,
+        drawer: localStorage.getItem("drawer") || true,
         locale: localStorage.getItem("locale") || "fr",
         locales: ["fr", "en"],
         websocket: null,
+        readyState: 0,
+        running: null,
+        period: 10,
+        timeout: 60,
+        tick: 100,
+        ratio: 0,
+        debug: null,
         message: null,
-        from_server: ""
       }),
       computed: {
       },
@@ -103,12 +123,37 @@
         send_message: function () {
           this.websocket.send(this.message)
         },
+        on_open: function (event) {
+          console.log("on_open", event)
+          this.readyState = this.websocket.readyState
+        },
+        on_close: function (event) {
+          console.log("on_close", event)
+          this.readyState = this.websocket.readyState
+        },
         on_message: function (event) {
-          console.log(event)
-          this.from_server = `${this.from_server}\n${event.data}`
+          let data = event.data
+          try {
+            json = JSON.parse(data)
+            this.running = json.running || null
+            this.ratio = json.state.ratio || 0
+          }
+          catch {
+            console.log("on_message", event)
+          }
+          if(this.debug)
+            console.log(data)
+        },
+        status: function () {
+          fetch("/")
+            .then(response => response.json())
+            .then(data => {
+              console.log("status", data)
+              this.on_message({ data: JSON.stringify(data) })
+            })
         },
         start: function () {
-          fetch("/start")
+          fetch(`/start?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}`)
         },
         stop: function () {
           fetch("/stop")
@@ -125,16 +170,16 @@
         this.$i18n.locale = this.locale
         this.websocket = new WebSocket(`${window.location.origin}/ws`.replace("http", "ws"))
         this.websocket.onmessage = this.on_message
-        this.websocket.onopen = function (event) {
-          console.log("onopen")
-          console.log(event)
-        }
+        this.websocket.onopen = this.on_open
+        this.websocket.onclose = this.on_close
       },
       mounted() {
+        this.status()
       }
     })
   </script>
   <style lang="scss" scoped>
+    @import 'variables.scss'
   </style>
 </body>
 

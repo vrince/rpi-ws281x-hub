@@ -11,7 +11,7 @@ import asyncio
 import uvicorn
 import click
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Response
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -28,6 +28,12 @@ logger = logging.getLogger("gunicorn.error")
 # state
 class State(BaseModel):
     stop_thread: bool = False
+    timeout: float = 0
+    period: float = 0
+    tick: float = 0
+    duration: float = 0
+    position: float = 0
+    ratio: float = 0
 
 state = State()
 thread = None
@@ -61,21 +67,27 @@ manager = ConnectionManager()
 
 def status():
     return {
-        'thread': {
-            'running': (thread is not None)
-        },
+        'running': (thread is not None),
         'state': state.dict()
     }
 
-def event_loop(timeout : float = -1, tick: float = 1):
+def event_loop(timeout : float, period: float, tick: float):
     print("event_loop")
+    global state
     start = timer()
     while True:
-        print("tick")
+        state.duration = timer() - start
+        state.position = state.duration / period
+        state.ratio = state.position % 1
+        print(f"tick duration({state.duration}) position({state.position}) ratio({state.ratio})")
+        asyncio.run(manager.broadcast(json.dumps(status())))
         if timeout > 0 and timer() - start > timeout:
             print("timeout")
             break
         if state.stop_thread:
+            state.duration = 0
+            state.position = 0
+            state.ratio = 0
             break
         time.sleep(tick)
 
@@ -86,12 +98,12 @@ def thread_wrapper(function: Callable, args: dict = {}, callback: Callable = Non
     if callback is not None:
         callback()
 
-def start_thread(timeout: float = -1, tick: float = 1, effect: str = ""):
+def start_thread(timeout: float = -1, period: float = 60, tick: float = 1, effect: str = ""):
     global thread
     if not thread:
         thread = Thread(
             target=thread_wrapper, 
-            args=(event_loop, {"timeout": timeout, "tick": tick}, on_thread_close),
+            args=(event_loop, {"timeout": timeout, "period": period, "tick": tick}, on_thread_close),
             daemon=True)
         thread.start()
         asyncio.run(manager.broadcast(json.dumps(status())))
@@ -114,6 +126,11 @@ def read_vue_app():
     return open(module_dir + '/index.html', 'r').read()
     #return vue_app
 
+@app.get('/variables.scss')
+def read_vue_app():
+    data = open(module_dir + '/variables.scss', 'r').read()
+    return Response(content=data, media_type="text/css")
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
@@ -126,9 +143,9 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 @app.get("/start")
-def get_start(timeout: float = -1, tick: float = 1, effect: str = ""):
+def get_start(timeout: float = -1, period: float = 60, tick: float = 1, effect: str = ""):
     if not thread:
-        start_thread(timeout, tick, effect)
+        start_thread(timeout, period, tick, effect)
         return {"starting": True}
     else:
         return {"starting": False}
