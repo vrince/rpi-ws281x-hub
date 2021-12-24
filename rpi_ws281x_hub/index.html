@@ -3,7 +3,7 @@
 
 <head>
   <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌈</text></svg>">
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧑🏾‍🎄</text></svg>">
   <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
@@ -23,12 +23,15 @@
               <v-progress-circular indeterminate class="mr-6"></v-progress-circular>Running
             </v-alert>
             <v-alert v-else color="grey" dense>Not running</v-alert>
-            <v-slider v-model="period" label="period (s)" thumb-label dense min="1" max="60"></v-slider>
-            <v-slider v-model="timeout" label="timeout (s)" thumb-label dense min="1" max="1000"></v-slider>
-            <v-slider v-model="tick" label="tick (ms)" step="100" thumb-label dense min="100" max="1000"></v-slider>
+            <v-slider v-model="timeout" label="timeout" hint="seconds" thumb-label dense min="1" max="600"></v-slider>
+            <v-slider v-model="period" label="period" hint="seconds" thumb-label dense min="1" max="60"></v-slider>
+            <v-slider v-model="tick" label="tick" hint="milli-seconds" step="100" thumb-label dense min="100" max="1000"></v-slider>
           </v-card-text>
           <v-card-actions>
             <v-progress-linear color="success" :buffer-value="ratio*100" rounded stream></v-progress-linear>
+          </v-card-actions>
+          <v-card-actions>
+            <v-progress-linear color="success" :buffer-value="progress*100" rounded stream></v-progress-linear>
           </v-card-actions>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -54,7 +57,7 @@
 
       <v-app-bar app elevation=10>
         <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>rpi-ws281x-hub 🌈</v-toolbar-title>
+        <v-toolbar-title><h1></h1>rpi-ws281x-hub 🧑🏾‍🎄</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn icon v-if="locale != locales[1]" @click="change_locale(1)"> en </v-btn>
         <v-btn icon v-else @click="change_locale(0)"> fr </v-btn>
@@ -104,12 +107,13 @@
         locale: localStorage.getItem("locale") || "fr",
         locales: ["fr", "en"],
         websocket: null,
-        readyState: 0,
+        readyState: false,
         running: null,
         period: 10,
         timeout: 60,
         tick: 100,
         ratio: 0,
+        progress: 0,
         debug: null,
         message: null,
       }),
@@ -125,11 +129,11 @@
         },
         on_open: function (event) {
           console.log("on_open", event)
-          this.readyState = this.websocket.readyState
+          this.readyState = true
         },
         on_close: function (event) {
           console.log("on_close", event)
-          this.readyState = this.websocket.readyState
+          this.readyState = false
         },
         on_message: function (event) {
           let data = event.data
@@ -137,6 +141,7 @@
             json = JSON.parse(data)
             this.running = json.running || null
             this.ratio = json.state.ratio || 0
+            this.progress = json.state.progress || 0
           }
           catch {
             console.log("on_message", event)

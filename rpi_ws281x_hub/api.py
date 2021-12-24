@@ -17,6 +17,9 @@ from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel
 
+from strip import ColorPixelStrip
+from tasks import colorFire
+
 # config_dir = user_config_dir('rpi-thermo-chick')
 module_dir = path.dirname(__file__)
 
@@ -34,6 +37,7 @@ class State(BaseModel):
     duration: float = 0
     position: float = 0
     ratio: float = 0
+    progress: float = 0
 
 state = State()
 thread = None
@@ -75,25 +79,25 @@ def event_loop(timeout : float, period: float, tick: float):
     print("event_loop")
     global state
     start = timer()
+    state.timeout = timeout
+    task = colorFire()
     while True:
         state.duration = timer() - start
         state.position = state.duration / period
         state.ratio = state.position % 1
-        print(f"tick duration({state.duration}) position({state.position}) ratio({state.ratio})")
+        state.progress = state.duration / state.timeout
         asyncio.run(manager.broadcast(json.dumps(status())))
+        task.tick(state.ratio)
         if timeout > 0 and timer() - start > timeout:
-            print("timeout")
+            logger.info("timeout")
             break
         if state.stop_thread:
-            state.duration = 0
-            state.position = 0
-            state.ratio = 0
             break
         time.sleep(tick)
 
 
 def thread_wrapper(function: Callable, args: dict = {}, callback: Callable = None):
-    print("thread_wrapper")
+    logger.info("thread_wrapper")
     function(**args)
     if callback is not None:
         callback()
@@ -109,10 +113,14 @@ def start_thread(timeout: float = -1, period: float = 60, tick: float = 1, effec
         asyncio.run(manager.broadcast(json.dumps(status())))
 
 def on_thread_close():
-    print("on_thread_close")
+    logger.info("on_thread_close")
     global thread, state
     thread = None
     state.stop_thread = False
+    state.duration = 0
+    state.position = 0
+    state.ratio = 0
+    state.progress = 0
     asyncio.run(manager.broadcast(json.dumps(status())))
 
 # Routes
