@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel
 
-from strip import ColorPixelStrip
+from strip import strip
 from tasks import colorFire
 
 # config_dir = user_config_dir('rpi-thermo-chick')
@@ -121,6 +121,7 @@ def on_thread_close():
     state.position = 0
     state.ratio = 0
     state.progress = 0
+    strip.clear()
     asyncio.run(manager.broadcast(json.dumps(status())))
 
 # Routes
@@ -138,6 +139,11 @@ def read_vue_app():
 def read_vue_app():
     data = open(module_dir + '/variables.scss', 'r').read()
     return Response(content=data, media_type="text/css")
+
+@app.get('/config')
+def read_vue_app():
+    data = open(module_dir + '/../config.json', 'r').read()
+    return Response(content=data, media_type="application/json")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

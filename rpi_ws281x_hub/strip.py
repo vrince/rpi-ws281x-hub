@@ -22,6 +22,11 @@ class ColorPixelStrip(PixelStrip):
         super().__init__(num, pin, freq_hz, dma, invert, brightness, channel,
                          strip_type, gamma)
 
+    def clear(self):
+        for i in range(self.numPixels()):
+            self.setPixelRGB(i, C('black'))
+        self.show()
+        
     def getConfig(self):
         return self.config
 
