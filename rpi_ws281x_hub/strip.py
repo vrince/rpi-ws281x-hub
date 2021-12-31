@@ -2,31 +2,38 @@ import os
 import time
 import random
 import json
+
+from pydantic import BaseModel
+
 from timeit import default_timer as timer
 
 from colour import Color as C
 
 from rpi_ws281x import *
 
+class ColorPixelStripConfig(BaseModel):
+    num: int = 12
+    pin: int = 18
+    freq_hz: int = 800000
+    dma: int = 10
+    invert: bool = False
+    brightness: int = 255
+    channel: int = 0
+    strip_type: int = None
+    gamma: int = None
+
 class ColorPixelStrip(PixelStrip):
-    def __init__(self,
-                 num=12,
-                 pin=18,
-                 freq_hz=800000,
-                 dma=10,
-                 invert=False,
-                 brightness=255,
-                 channel=0,
-                 strip_type=None,
-                 gamma=None):
-        super().__init__(num, pin, freq_hz, dma, invert, brightness, channel,
-                         strip_type, gamma)
+    def __init__(self, config: ColorPixelStripConfig = ColorPixelStripConfig()):
+        super().__init__(config.num, config.pin, config.freq_hz, config.dma,
+                         config.invert, config.brightness, config.channel,
+                         config.strip_type, config.gamma)
+        self.config = config
 
     def clear(self):
         for i in range(self.numPixels()):
             self.setPixelRGB(i, C('black'))
         self.show()
-        
+
     def getConfig(self):
         return self.config
 
@@ -38,35 +45,6 @@ class ColorPixelStrip(PixelStrip):
         return C(rgb=((self._led_data[n] >> 16 & 0xff) / 255,
                       (self._led_data[n] >> 8 & 0xff) / 255,
                       (self._led_data[n] & 0xff) / 255))
-
-
-
-with open('config.json') as f:
-    config = json.load(f)
-print(config)
-
-frame_time = 30  # ms
-
-# PWM pins
-# 12 --> https://pinout.xyz/pinout/pin32_gpio12#
-# 18 --> https://pinout.xyz/pinout/pin12_gpio18#
-
-# Create NeoPixel object with appropriate configuration.
-strip = ColorPixelStrip(
-    config["led_count"],  # Number of LED pixels.
-    config["pin"],  # GPIO pin connected to the pixels (18 uses PWM!).
-    config["frequency"],  # LED signal frequency in hertz (usually 800khz)
-    config["dma"],  # DMA channel to use for generating signal (try 10)
-    # True to invert the signal (when using NPN transistor level shift)
-    config["invert"],
-    config["brightness"],  # Set to 0 for darkest and 255 for brightest
-    config["channel"])  # set to '1' for GPIOs 13, 19, 41, 45 or 53
-
-# Initialize the library (must be called once before other functions).
-try:
-    strip.begin()
-except RuntimeError:
-    pass
 
 #####
 
@@ -231,6 +209,3 @@ def theaterChase(color, wait_ms=50, duration_s=10):
             time.sleep(wait_ms / 1000.0)
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelRGB(i + q, C('black'))
-
-
-clear()

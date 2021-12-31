@@ -25,7 +25,7 @@
             <v-alert v-else color="grey" dense>Not running</v-alert>
             <v-slider v-model="timeout" label="timeout" hint="seconds" thumb-label dense min="1" max="600"></v-slider>
             <v-slider v-model="period" label="period" hint="seconds" thumb-label dense min="1" max="60"></v-slider>
-            <v-slider v-model="tick" label="tick" hint="milli-seconds" step="100" thumb-label dense min="100"
+            <v-slider v-model="tick" label="tick" hint="milli-seconds" step="10" thumb-label dense min="10"
               max="1000"></v-slider>
           </v-card-text>
           <v-card-actions>
@@ -64,7 +64,7 @@
                 </v-list-item-icon>
                 <v-list-item-content>
                   <v-list-item-title>{{key}}</v-list-item-title>
-                  <v-list-item-subtitle color="primary">{{item}}</v-list-item-subtitle>
+                  <v-list-item-subtitle>{{item}}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
             </v-list>
@@ -177,7 +177,7 @@
             })
         },
         start: function () {
-          fetch(`/start?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}`)
+          fetch(`/start/rainbow?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}`)
         },
         stop: function () {
           fetch("/stop")

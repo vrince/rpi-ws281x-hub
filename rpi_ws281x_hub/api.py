@@ -17,8 +17,8 @@ from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel
 
-from strip import strip
-from tasks import colorFire
+from strip import ColorPixelStrip, ColorPixelStripConfig
+from tasks import *
 
 # config_dir = user_config_dir('rpi-thermo-chick')
 module_dir = path.dirname(__file__)
@@ -26,7 +26,19 @@ module_dir = path.dirname(__file__)
 app = FastAPI()
 vue_app = open( module_dir + '/index.html', 'r').read()
 
-logger = logging.getLogger("gunicorn.error")
+logger = logging.getLogger('gunicorn.error')
+
+# strip
+# Initialize the library (must be called once before other functions).
+try:
+    config = ColorPixelStripConfig.parse_file('config.json')
+    strip = ColorPixelStrip(config)
+    strip.begin()
+    print(f'strip: {config.dict()}')
+except Exception as e:
+    print('cannot instanciate strip (check config.json)')
+    print(e)
+    exit(1)
 
 # state
 class State(BaseModel):
@@ -41,6 +53,7 @@ class State(BaseModel):
 
 state = State()
 thread = None
+factory = TaskFactory(strip)
 
 class Item(BaseModel):
     name: str
@@ -75,45 +88,44 @@ def status():
         'state': state.dict()
     }
 
-def event_loop(timeout : float, period: float, tick: float):
-    print("event_loop")
+def event_loop(timeout : float, period: float, tick: float, effect: str):
     global state
     start = timer()
     state.timeout = timeout
-    task = colorFire()
-    while True:
-        state.duration = timer() - start
-        state.position = state.duration / period
-        state.ratio = state.position % 1
-        state.progress = state.duration / state.timeout
-        asyncio.run(manager.broadcast(json.dumps(status())))
-        task.tick(state.ratio)
-        if timeout > 0 and timer() - start > timeout:
-            logger.info("timeout")
-            break
-        if state.stop_thread:
-            break
-        time.sleep(tick)
+    task = factory.get(effect)
+    print(task)
+    if task is not None:
+        while True:
+            state.duration = timer() - start
+            state.position = state.duration / period
+            state.ratio = state.position % 1
+            state.progress = state.duration / state.timeout
+            asyncio.run(manager.broadcast(json.dumps(status())))
+            task(state.ratio)
+            if timeout > 0 and timer() - start > timeout:
+                logger.info("timeout")
+                break
+            if state.stop_thread:
+                break
+            time.sleep(tick)
 
 
 def thread_wrapper(function: Callable, args: dict = {}, callback: Callable = None):
-    logger.info("thread_wrapper")
     function(**args)
     if callback is not None:
         callback()
 
-def start_thread(timeout: float = -1, period: float = 60, tick: float = 1, effect: str = ""):
+def start_thread(**kwargs):
     global thread
     if not thread:
         thread = Thread(
             target=thread_wrapper, 
-            args=(event_loop, {"timeout": timeout, "period": period, "tick": tick}, on_thread_close),
+            args=(event_loop, kwargs, on_thread_close),
             daemon=True)
         thread.start()
         asyncio.run(manager.broadcast(json.dumps(status())))
 
 def on_thread_close():
-    logger.info("on_thread_close")
     global thread, state
     thread = None
     state.stop_thread = False
@@ -156,10 +168,10 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
-@app.get("/start")
-def get_start(timeout: float = -1, period: float = 60, tick: float = 1, effect: str = ""):
+@app.get("/start/{effect}")
+def get_start(effect: TaskName, timeout: float = -1, period: float = 60, tick: float = 1):
     if not thread:
-        start_thread(timeout, period, tick, effect)
+        start_thread(effect=effect, timeout=timeout, period=period, tick=tick)
         return {"starting": True}
     else:
         return {"starting": False}
@@ -172,16 +184,6 @@ def stop():
     return {"stopping": state.stop_thread}
 
 #####################################
-
-@app.get("/items/{item_id}")
-def get_read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    return {"item_name": item.name, "item_id": item_id}
-
 
 @click.command()
 @click.option('--host', default='0.0.0.0', help='Host (default 0.0.0.0) [env RPI_WS281_HUB_HOST]')
