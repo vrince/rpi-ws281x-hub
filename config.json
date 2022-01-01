@@ -1,5 +1,5 @@
 {
-    "led_count": 7,
+    "led_count": 5,
     "pin": 13,
     "frequency": 800000,
     "dma": 10,

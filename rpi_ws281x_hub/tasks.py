@@ -8,9 +8,10 @@ from strip import ColorPixelStrip
 
 
 class colorFire():
-    def __init__(self, strip: ColorPixelStrip, from_color='orange', to_color='red'):
+    def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
-        self.colors = list(C(from_color).range_to(C(to_color), 100))
+        colors = kwargs.get('colors', ['orange', 'red'])
+        self.colors = list(C(colors[0]).range_to(C(colors[1]), 100))
 
     def __call__(self, ratio: float):
         i = int(random.uniform(0, self.strip.numPixels()))
@@ -22,10 +23,10 @@ class colorFire():
 
 
 class colorRaindow():
-    def __init__(self, strip: ColorPixelStrip):
+    def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
-        self.colors = list(C('red').range_to(C('blue'), 128))
-        self.colors += list(C('blue').range_to(C('red'), 128))
+        self.colors = list(C('#FF0000').range_to(C('#00FFFE'), 128))
+        self.colors += list(C('#00FFFF').range_to(C('#FF0001'), 128))
 
     def __call__(self, ratio: float):
         for i in range(self.strip.numPixels()):
@@ -43,6 +44,7 @@ class TaskFactory():
         self.strip = strip
 
     def get(self, name: str, **kwargs):
+        print(name, kwargs)
         if name == 'fire':
             return colorFire(self.strip, **kwargs)
         elif name == 'rainbow':

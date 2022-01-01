@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, List
 from threading import Thread
 from timeit import default_timer as timer
 import time
@@ -11,7 +11,7 @@ import asyncio
 import uvicorn
 import click
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Response
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Response, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -88,12 +88,11 @@ def status():
         'state': state.dict()
     }
 
-def event_loop(timeout : float, period: float, tick: float, effect: str):
+def event_loop(timeout : float, period: float, tick: float, effect: str, **kwargs):
     global state
     start = timer()
     state.timeout = timeout
-    task = factory.get(effect)
-    print(task)
+    task = factory.get(effect, **kwargs)
     if task is not None:
         while True:
             state.duration = timer() - start
@@ -163,15 +162,19 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            #await websocket.send_text(f"message text was: {data}")
             await manager.broadcast(f"message text was: {data}")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
 @app.get("/start/{effect}")
-def get_start(effect: TaskName, timeout: float = -1, period: float = 60, tick: float = 1):
+def get_start(effect: TaskName,
+              timeout: float = -1, period: float = 60, tick: float = 1,
+              color: Optional[List[str]] = Query(None)):
+    kwargs = {}
+    if color is not None:
+        kwargs['colors'] = [ f'#{c}' for c in color]
     if not thread:
-        start_thread(effect=effect, timeout=timeout, period=period, tick=tick)
+        start_thread(effect=effect, timeout=timeout, period=period, tick=tick, **kwargs)
         return {"starting": True}
     else:
         return {"starting": False}
