@@ -1,9 +1,9 @@
 {
-    "led_count": 5,
+    "num": 5,
     "pin": 13,
-    "frequency": 800000,
+    "freq_hz": 800000,
     "dma": 10,
     "invert": false,
-    "brightness": 255,
+    "brightness": 100,
     "channel": 1
 }

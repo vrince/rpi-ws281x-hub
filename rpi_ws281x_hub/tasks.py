@@ -6,6 +6,7 @@ from enum import Enum
 
 from strip import ColorPixelStrip
 
+RAINBOW = list(C('#FF0000').range_to(C('#00FFFE'), 128)) + list(C('#00FFFF').range_to(C('#FF0001'), 128))
 
 class colorFire():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
@@ -25,18 +26,28 @@ class colorFire():
 class colorRaindow():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
-        self.colors = list(C('#FF0000').range_to(C('#00FFFE'), 128))
-        self.colors += list(C('#00FFFF').range_to(C('#FF0001'), 128))
 
     def __call__(self, ratio: float):
         for i in range(self.strip.numPixels()):
-            self.strip.setPixelRGB(i, self.colors[int(ratio*255)])
+            self.strip.setPixelRGB(i, RAINBOW[int(ratio*255)])
         self.strip.show()
 
+class colorRaindowChase():
+    def __init__(self, strip: ColorPixelStrip, **kwargs):
+        self.strip = strip
+        self.index = 0
+
+    def __call__(self, ratio: float):
+        d = int(ratio*255)
+        rotateColors = RAINBOW[d:255] + RAINBOW[0:d]
+        for i in range(self.strip.numPixels()):
+            self.strip.setPixelRGB(i, rotateColors[int((i/self.strip.numPixels())*255)])
+        self.strip.show()
 
 class TaskName(str, Enum):
     fire = "fire"
     rainbow = "rainbow"
+    rainbowChase = "rainbowChase"
 
 
 class TaskFactory():
@@ -49,5 +60,7 @@ class TaskFactory():
             return colorFire(self.strip, **kwargs)
         elif name == 'rainbow':
             return colorRaindow(self.strip, **kwargs)
+        elif name == 'rainbowChase':
+            return colorRaindowChase(self.strip, **kwargs)
         else:
             return None

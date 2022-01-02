@@ -198,7 +198,7 @@
             colors += `&color=${color.hex.replace('#','')}`
           }
           console.log(colors)
-          fetch(`/start/rainbow?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}${colors}`)
+          fetch(`/start/rainbowChase?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}${colors}`)
         },
         stop: function () {
           fetch("/stop")
