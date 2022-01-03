@@ -17,6 +17,18 @@
       <v-navigation-drawer v-model="drawer" width="350" app>
         <v-card-title>Debug</v-card-title>
         <v-card elevation="4" class="ma-2 pa-4">
+          <v-card-title>Effect {{effect}} : {{effectIndex}} </v-card-title>
+          <v-card-text>
+            <v-color-picker class="mb-2" v-for="(color, index) in colors" v-model="colors[index]" :key="index"
+              elevation="4" hide-inputs hide-mode-switch hide-canvas mode="rgba"></v-color-picker>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="add_color">Add</v-btn>
+            <v-btn text @click="clear_colors">Clear</v-btn>
+          </v-card-actions>
+        </v-card>
+        <v-card elevation="4" class="ma-2 pa-4">
           <v-card-title>Threads</v-card-title>
           <v-card-text>
             <v-alert v-if="running" color="success" dense>
@@ -27,15 +39,7 @@
             <v-slider v-model="period" label="period" hint="seconds" thumb-label dense min="1" max="60"></v-slider>
             <v-slider v-model="tick" label="tick" hint="milli-seconds" step="10" thumb-label dense min="10" max="1000">
             </v-slider>
-            <v-card-title>Colors</v-card-title>
-            <v-color-picker class="mb-2" v-for="(color, index) in colors" v-model="colors[index]" :key="index"
-              elevation="4" hide-inputs hide-mode-switch hide-canvas mode="rgba"></v-color-picker>
           </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn text @click="add_color">Add</v-btn>
-            <v-btn text @click="clear_colors">Clear</v-btn>
-          </v-card-actions>
           <v-card-actions>
             <v-progress-linear color="success" :buffer-value="ratio*100" rounded stream></v-progress-linear>
           </v-card-actions>
@@ -83,7 +87,7 @@
       <v-app-bar app elevation=10>
         <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
         <v-toolbar-title>
-          <h1></h1>rpi-ws281x-hub 🧑🏾‍🎄
+          <h1>rpi-ws281x-hub 🧑🏾‍🎄</h1>
         </v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn icon v-if="locale != locales[1]" @click="change_locale(1)"> en </v-btn>
@@ -95,11 +99,18 @@
 
       <v-main class="align-center">
         <v-container class="mt-6">
-          <v-card class="mx-auto" elevation="10" max-width="450" outlined>
-            <v-list-item>
-              <v-list-item-content>
-              </v-list-item-content>
-            </v-list-item>
+          <v-card class="mx-auto" elevation="10">
+            <template>
+              <v-carousel v-model="effectIndex">
+                <v-carousel-item v-for="(effect, i) in effects" :key="effect.name">
+                  <v-sheet height="100%" tile>
+                    <v-row class="fill-height" align="center" justify="center">
+                      <v-img max-height="300" max-width="300" :src="`/images/${effect.img}`"></v-img>
+                    </v-row>
+                  </v-sheet>
+                </v-carousel-item>
+              </v-carousel>
+            </template>
           </v-card>
         </v-container>
       </v-main>
@@ -144,9 +155,17 @@
         debug: null,
         message: null,
         config: null,
+        effectIndex: 0,
+        effects: [
+          { name: "fire", img: "fire.png" },
+          { name: "rainbow", img: "rainbow.png" },
+          { name: "rainbowChase", img: "flag.png" }],
         colors: [null, null]
       }),
       computed: {
+        effect: function () {
+          return this.effects[this.effectIndex].name || ""
+        }
       },
       methods: {
         invert_theme_colors: function () {
@@ -195,10 +214,10 @@
           let colors = ''
           for (const color of this.colors) {
             console.log(color.hex)
-            colors += `&color=${color.hex.replace('#','')}`
+            colors += `&color=${color.hex.replace('#', '')}`
           }
           console.log(colors)
-          fetch(`/start/rainbowChase?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}${colors}`)
+          fetch(`/start/${this.effect}?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}${colors}`)
         },
         stop: function () {
           fetch("/stop")

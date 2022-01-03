@@ -176,3 +176,5 @@ python3 -m venv .env
 source .env/bin/activate
 pip install flask uwsgi
 ```
+
+https://www.flaticon.com/search?author_id=1&style_id=15&type=standard&word=color

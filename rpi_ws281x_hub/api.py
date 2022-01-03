@@ -24,6 +24,8 @@ from tasks import *
 module_dir = path.dirname(__file__)
 
 app = FastAPI()
+app.mount("/images", StaticFiles(directory="images"), name="images")
+
 vue_app = open( module_dir + '/index.html', 'r').read()
 
 logger = logging.getLogger('gunicorn.error')

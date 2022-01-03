@@ -12,7 +12,7 @@ class colorFire():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
         colors = kwargs.get('colors', ['orange', 'red'])
-        self.colors = list(C(colors[0]).range_to(C(colors[1]), 100))
+        self.colors = [C(color) for color in colors]
 
     def __call__(self, ratio: float):
         i = int(random.uniform(0, self.strip.numPixels()))
@@ -32,6 +32,7 @@ class colorRaindow():
             self.strip.setPixelRGB(i, RAINBOW[int(ratio*255)])
         self.strip.show()
 
+
 class colorRaindowChase():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
@@ -43,6 +44,20 @@ class colorRaindowChase():
         for i in range(self.strip.numPixels()):
             self.strip.setPixelRGB(i, rotateColors[int((i/self.strip.numPixels())*255)])
         self.strip.show()
+
+
+class colorRaindowChase():
+    def __init__(self, strip: ColorPixelStrip, **kwargs):
+        self.strip = strip
+        self.index = 0
+
+    def __call__(self, ratio: float):
+        d = int(ratio*255)
+        rotateColors = RAINBOW[d:255] + RAINBOW[0:d]
+        for i in range(self.strip.numPixels()):
+            self.strip.setPixelRGB(i, rotateColors[int((i/self.strip.numPixels())*255)])
+        self.strip.show()
+
 
 class TaskName(str, Enum):
     fire = "fire"
