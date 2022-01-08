@@ -2,8 +2,7 @@
 <html>
 
 <head>
-  <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧑🏾‍🎄</text></svg>">
+  <link rel="icon" href="images/color-palette.png">
   <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
@@ -17,7 +16,11 @@
       <v-navigation-drawer v-model="drawer" width="350" app>
         <v-card-title>Debug</v-card-title>
         <v-card elevation="4" class="ma-2 pa-4">
-          <v-card-title>Effect {{effect}} : {{effectIndex}} </v-card-title>
+          <v-card-title>Effect
+            <v-spacer></v-spacer>
+            <div class="text-overline">{{effect}} [ {{effectIndex}} ]</div>
+          </v-card-title>
+          <v-card-title>Colors</v-card-title>
           <v-card-text>
             <v-color-picker class="mb-2" v-for="(color, index) in colors" v-model="colors[index]" :key="index"
               elevation="4" hide-inputs hide-mode-switch hide-canvas mode="rgba"></v-color-picker>
@@ -86,8 +89,11 @@
 
       <v-app-bar app elevation=10>
         <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>
-          <h1>rpi-ws281x-hub 🧑🏾‍🎄</h1>
+        <v-avatar size="48">
+          <v-img class="d-inline" src="/images/color-palette.png"></v-img>
+        </v-avatar>
+        <v-toolbar-title class="ml-2 text-h4 text-uppercase">
+          rpi<span class="font-weight-thin">ws281x</span>hub
         </v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn icon v-if="locale != locales[1]" @click="change_locale(1)"> en </v-btn>
@@ -111,9 +117,18 @@
                 </v-carousel-item>
               </v-carousel>
             </template>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text @click="start">Start</v-btn>
+              <v-btn text @click="stop">Stop</v-btn>
+            </v-card-actions>
           </v-card>
         </v-container>
       </v-main>
+      <v-snackbar v-model="snackbar" timeout="5000">
+        <v-avatar size="32" class="mr-6"><v-img class="d-inline" src="/images/warning.png"></v-img></v-avatar>
+        {{ error }}
+      </v-snackbar>
     </v-app>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
@@ -159,8 +174,16 @@
         effects: [
           { name: "fire", img: "fire.png" },
           { name: "rainbow", img: "rainbow.png" },
-          { name: "rainbowChase", img: "flag.png" }],
-        colors: [null, null]
+          { name: "rainbowChase", img: "flag.png" },
+          { name: "fallingStars", img: "falling-star.png" },
+          { name: "colorWheel", img: "color-wheel.png" },
+          { name: "rainbowStar", img: "star.png" },
+          { name: "sparkles", img: "sparkles.png" },
+          { name: "wave", img: "wave.png" }
+        ],
+        colors: [null, null],
+        snackbar: null,
+        error: ''
       }),
       computed: {
         effect: function () {
@@ -217,7 +240,12 @@
             colors += `&color=${color.hex.replace('#', '')}`
           }
           console.log(colors)
-          fetch(`/start/${this.effect}?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}${colors}`)
+          fetch(`/start/${this.effect}?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}${colors}`).then((response) => {
+            if (!response.ok) {
+              this.snackbar = true
+              this.error = response.statusText
+            }
+          })
         },
         stop: function () {
           fetch("/stop")
