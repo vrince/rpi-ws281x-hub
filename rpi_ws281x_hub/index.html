@@ -64,8 +64,8 @@
             <v-text-field label="Message" outlined dense v-model="message"></v-text-field>
           </v-card-text>
           <v-card-actions>
+            <v-switch v-model="debug" insert label="debug"></v-switch>
             <v-spacer></v-spacer>
-            <v-switch v-model="debug" insert color="success"></v-switch>
             <v-btn text @click="send_message">Send</v-btn>
           </v-card-actions>
         </v-card>
@@ -122,11 +122,17 @@
               <v-btn text @click="start">Start</v-btn>
               <v-btn text @click="stop">Stop</v-btn>
             </v-card-actions>
+            <v-card-actions v-if="debug">
+              Strip: 
+              <v-sheet v-for="(color, i) in stripColors" class="ma-1" :color="color" rounded elevation="1" height="24" width="24"></v-sheet>
+            </v-card-actions>
           </v-card>
         </v-container>
       </v-main>
       <v-snackbar v-model="snackbar" timeout="5000">
-        <v-avatar size="32" class="mr-6"><v-img class="d-inline" src="/images/warning.png"></v-img></v-avatar>
+        <v-avatar size="32" class="mr-6">
+          <v-img class="d-inline" src="/images/warning.png"></v-img>
+        </v-avatar>
         {{ error }}
       </v-snackbar>
     </v-app>
@@ -182,6 +188,7 @@
           { name: "wave", img: "wave.png" }
         ],
         colors: [null, null],
+        stripColors: [],
         snackbar: null,
         error: ''
       }),
@@ -219,12 +226,11 @@
             this.running = json.running || null
             this.ratio = json.state.ratio || 0
             this.progress = json.state.progress || 0
+            this.stripColors = this.debug ? json.state.colors || [] : []
           }
           catch {
             console.log("on_message", event)
           }
-          if (this.debug)
-            console.log(data)
         },
         fetch_status: function () {
           fetch("/")
@@ -232,6 +238,12 @@
             .then(data => {
               this.on_message({ data: JSON.stringify(data) })
             })
+        },
+        open: function () {
+          this.websocket = new WebSocket(`${window.location.origin}/ws`.replace("http", "ws"))
+          this.websocket.onmessage = this.on_message
+          this.websocket.onopen = this.on_open
+          this.websocket.onclose = this.on_close
         },
         start: function () {
           let colors = ''
@@ -267,14 +279,12 @@
       },
       created() {
         this.$i18n.locale = this.locale
-        this.websocket = new WebSocket(`${window.location.origin}/ws`.replace("http", "ws"))
-        this.websocket.onmessage = this.on_message
-        this.websocket.onopen = this.on_open
-        this.websocket.onclose = this.on_close
+        this.open()
       },
       mounted() {
         this.fetch_status()
         this.fetch_config()
+        setInterval(() => { !this.readyState ? this.open() : void (0) }, 1000)
       }
     })
   </script>

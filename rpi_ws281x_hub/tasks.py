@@ -8,12 +8,25 @@ from strip import ColorPixelStrip
 
 RAINBOW = list(C('#FF0000').range_to(C('#00FFFE'), 128)) + list(C('#00FFFF').range_to(C('#FF0001'), 128))
 
+
+def task(func):
+    """task decorator (wrap `__call__` method of tasks)
+
+    Returns:
+        actual color array of the strip
+    """
+    def wrapper(self, *args, **kwargs):
+        func(self, *args, **kwargs)
+        return [ self.strip.getPixelRGB(i).hex for i in range(self.strip.numPixels()) ]
+    return wrapper
+
 class colorFire():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
         colors = kwargs.get('colors', ['orange', 'red'])
         self.colors = [C(color) for color in colors]
 
+    @task
     def __call__(self, ratio: float):
         i = int(random.uniform(0, self.strip.numPixels()))
         c = self.colors[int(random.uniform(0, len(self.colors)))]
@@ -27,6 +40,7 @@ class colorRaindow():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
 
+    @task
     def __call__(self, ratio: float):
         for i in range(self.strip.numPixels()):
             self.strip.setPixelRGB(i, RAINBOW[int(ratio*255)])
@@ -51,6 +65,7 @@ class colorRaindowChase():
         self.strip = strip
         self.index = 0
 
+    @task
     def __call__(self, ratio: float):
         d = int(ratio*255)
         rotateColors = RAINBOW[d:255] + RAINBOW[0:d]

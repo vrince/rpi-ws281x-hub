@@ -52,6 +52,7 @@ class State(BaseModel):
     position: float = 0
     ratio: float = 0
     progress: float = 0
+    colors: List[str] = []
 
 state = State()
 thread = None
@@ -101,8 +102,8 @@ def event_loop(timeout : float, period: float, tick: float, effect: str, **kwarg
             state.position = state.duration / period
             state.ratio = state.position % 1
             state.progress = state.duration / state.timeout
+            state.colors = task(state.ratio)
             asyncio.run(manager.broadcast(json.dumps(status())))
-            task(state.ratio)
             if timeout > 0 and timer() - start > timeout:
                 logger.info("timeout")
                 break
@@ -134,6 +135,7 @@ def on_thread_close():
     state.position = 0
     state.ratio = 0
     state.progress = 0
+    state.colors = []
     strip.clear()
     asyncio.run(manager.broadcast(json.dumps(status())))
 
