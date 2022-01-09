@@ -3,11 +3,12 @@ from abc import ABC, abstractmethod
 from colour import Color as C
 import random
 from enum import Enum
+from pydantic import BaseModel
 
 from strip import ColorPixelStrip
 
 RAINBOW = list(C('#FF0000').range_to(C('#00FFFE'), 128)) + list(C('#00FFFF').range_to(C('#FF0001'), 128))
-
+STAR = list(C('yellow').range_to(C('white'), 128))
 
 def task(func):
     """task decorator (wrap `__call__` method of tasks)
@@ -20,7 +21,7 @@ def task(func):
         return [ self.strip.getPixelRGB(i).hex for i in range(self.strip.numPixels()) ]
     return wrapper
 
-class colorFire():
+class Fire():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
         colors = kwargs.get('colors', ['orange', 'red'])
@@ -36,7 +37,7 @@ class colorFire():
         self.strip.show()
 
 
-class colorRaindow():
+class Raindow():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
 
@@ -47,7 +48,7 @@ class colorRaindow():
         self.strip.show()
 
 
-class colorRaindowChase():
+class RaindowChase():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
         self.index = 0
@@ -60,7 +61,7 @@ class colorRaindowChase():
         self.strip.show()
 
 
-class colorRaindowChase():
+class RaindowChase():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
         self.index = 0
@@ -73,11 +74,34 @@ class colorRaindowChase():
             self.strip.setPixelRGB(i, rotateColors[int((i/self.strip.numPixels())*255)])
         self.strip.show()
 
+class FallingStars():
+
+    def __init__(self, strip: ColorPixelStrip, **kwargs):
+        self.strip = strip
+        self.count = int(random.uniform(2, 4))
+        self.positions = random.choices( list(range(self.strip.numPixels())), k=self.count)
+        self.speeds = [random.uniform(-1, 1) for s in range(self.count)]
+        self.colors = random.choices( STAR, k=self.count)
+        print(self.count, self.positions, self.speeds, self.colors)
+
+    @task
+    def __call__(self, ratio: float):
+        numPixels = self.strip.numPixels()
+        for i in range(self.strip.numPixels()):
+            self.strip.setPixelRGB(i, C(rgb=tuple([e * 0.75 for e in self.strip.getPixelRGB(i).rgb])))
+        for i in range(self.count):
+            self.positions[i] += self.speeds[i]
+            self.positions[i] = self.positions[i] - numPixels if self.positions[i] > numPixels else self.positions[i]
+            self.positions[i] = self.positions[i] + numPixels if self.positions[i] < 0 else self.positions[i]
+            self.strip.setPixelRGB(int(self.positions[i]), self.colors[i])
+        self.strip.show()
+
 
 class TaskName(str, Enum):
     fire = "fire"
     rainbow = "rainbow"
     rainbowChase = "rainbowChase"
+    fallingStars = "fallingStars"
 
 
 class TaskFactory():
@@ -87,10 +111,12 @@ class TaskFactory():
     def get(self, name: str, **kwargs):
         print(name, kwargs)
         if name == 'fire':
-            return colorFire(self.strip, **kwargs)
+            return Fire(self.strip, **kwargs)
         elif name == 'rainbow':
-            return colorRaindow(self.strip, **kwargs)
+            return Raindow(self.strip, **kwargs)
         elif name == 'rainbowChase':
-            return colorRaindowChase(self.strip, **kwargs)
+            return RaindowChase(self.strip, **kwargs)
+        elif name == 'fallingStars':
+            return FallingStars(self.strip, **kwargs)
         else:
             return None

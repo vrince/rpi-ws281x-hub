@@ -123,8 +123,9 @@
               <v-btn text @click="stop">Stop</v-btn>
             </v-card-actions>
             <v-card-actions v-if="debug">
-              Strip: 
-              <v-sheet v-for="(color, i) in stripColors" class="ma-1" :color="color" rounded elevation="1" height="24" width="24"></v-sheet>
+              Strip:
+              <v-sheet v-for="(color, i) in stripColors" class="ma-1" :color="color" rounded elevation="1" height="24"
+                width="24"></v-sheet>
             </v-card-actions>
           </v-card>
         </v-container>
@@ -218,6 +219,7 @@
         on_close: function (event) {
           console.log("on_close", event)
           this.readyState = false
+          this.websocket = null
         },
         on_message: function (event) {
           let data = event.data
@@ -240,10 +242,12 @@
             })
         },
         open: function () {
-          this.websocket = new WebSocket(`${window.location.origin}/ws`.replace("http", "ws"))
-          this.websocket.onmessage = this.on_message
-          this.websocket.onopen = this.on_open
-          this.websocket.onclose = this.on_close
+          if (this.websocket == null) {
+            this.websocket = new WebSocket(`${window.location.origin}/ws`.replace("http", "ws"))
+            this.websocket.onmessage = this.on_message
+            this.websocket.onopen = this.on_open
+            this.websocket.onclose = this.on_close
+          }
         },
         start: function () {
           let colors = ''
