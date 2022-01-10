@@ -4,6 +4,7 @@ from colour import Color as C
 import random
 from enum import Enum
 from pydantic import BaseModel
+from easing_functions import *
 
 from strip import ColorPixelStrip
 
@@ -96,12 +97,45 @@ class FallingStars():
             self.strip.setPixelRGB(int(self.positions[i]), self.colors[i])
         self.strip.show()
 
+class ColorWheel():
+    def __init__(self, strip: ColorPixelStrip, **kwargs):
+        self.strip = strip
+        self.colors = random.choices(RAINBOW, k=6)
+        self.color = random.choice(self.colors)
+        self.easing = CubicEaseInOut()
+
+    @task
+    def __call__(self, ratio: float):
+        r = self.easing(ratio if ratio < 0.5 else 1 - ratio)
+        if r < 0.01:
+            self.color = random.choice(self.colors)
+        for i in range(self.strip.numPixels()):
+            self.strip.setPixelRGB(i, C(rgb=tuple([e * r for e in self.color.rgb])))
+        self.strip.show()
+
+class Sparkles():
+    def __init__(self, strip: ColorPixelStrip, **kwargs):
+        self.strip = strip
+
+    @task
+    def __call__(self, ratio: float):
+        numPixels = self.strip.numPixels()
+        for i in range(self.strip.numPixels()):
+            self.strip.setPixelRGB(i, C(rgb=tuple([e * 0.75 for e in self.strip.getPixelRGB(i).rgb])))
+        if random.choice(range(10)) < 2:
+            index = random.choice(range(numPixels))
+            color = random.choice(STAR)
+            self.strip.setPixelRGB(index, color)
+        self.strip.show()
+
 
 class TaskName(str, Enum):
     fire = "fire"
     rainbow = "rainbow"
     rainbowChase = "rainbowChase"
     fallingStars = "fallingStars"
+    colorWheel = "colorWheel"
+    sparkles = "sparkles"
 
 
 class TaskFactory():
@@ -118,5 +152,9 @@ class TaskFactory():
             return RaindowChase(self.strip, **kwargs)
         elif name == 'fallingStars':
             return FallingStars(self.strip, **kwargs)
+        elif name == 'colorWheel':
+            return ColorWheel(self.strip, **kwargs)
+        elif name == 'sparkles':
+            return Sparkles(self.strip, **kwargs)
         else:
             return None
