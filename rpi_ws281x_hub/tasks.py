@@ -10,6 +10,23 @@ from strip import ColorPixelStrip
 
 RAINBOW = list(C('#FF0000').range_to(C('#00FFFE'), 128)) + list(C('#00FFFF').range_to(C('#FF0001'), 128))
 STAR = list(C('yellow').range_to(C('white'), 128))
+WAVE = list(C('blue').range_to(C('white'), 128))
+
+def roll_index(position, max_position):
+    if position > max_position:
+        return position - max_position
+    elif position < 0:
+        return position + max_position
+    return position
+
+
+def dim_color(color, intensity):
+    return C(rgb=tuple([max(0,min(e * intensity,1)) for e in color.rgb]))
+
+
+def rotate(array, position):
+    return array[position:len(array)] + array[0:position]
+
 
 def task(func):
     """task decorator (wrap `__call__` method of tasks)
@@ -56,9 +73,9 @@ class RaindowChase():
 
     def __call__(self, ratio: float):
         d = int(ratio*255)
-        rotateColors = RAINBOW[d:255] + RAINBOW[0:d]
+        rotate_colors = RAINBOW[d:255] + RAINBOW[0:d]
         for i in range(self.strip.numPixels()):
-            self.strip.setPixelRGB(i, rotateColors[int((i/self.strip.numPixels())*255)])
+            self.strip.setPixelRGB(i, rotate_colors[int((i/self.strip.numPixels())*255)])
         self.strip.show()
 
 
@@ -70,13 +87,13 @@ class RaindowChase():
     @task
     def __call__(self, ratio: float):
         d = int(ratio*255)
-        rotateColors = RAINBOW[d:255] + RAINBOW[0:d]
+        rotate_colors = RAINBOW[d:255] + RAINBOW[0:d]
         for i in range(self.strip.numPixels()):
-            self.strip.setPixelRGB(i, rotateColors[int((i/self.strip.numPixels())*255)])
+            self.strip.setPixelRGB(i, rotate_colors[int((i/self.strip.numPixels())*255)])
         self.strip.show()
 
-class FallingStars():
 
+class FallingStars():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
         self.count = int(random.uniform(2, 4))
@@ -89,13 +106,13 @@ class FallingStars():
     def __call__(self, ratio: float):
         numPixels = self.strip.numPixels()
         for i in range(self.strip.numPixels()):
-            self.strip.setPixelRGB(i, C(rgb=tuple([e * 0.75 for e in self.strip.getPixelRGB(i).rgb])))
+            self.strip.setPixelRGB(i,dim_color(self.strip.getPixelRGB(i), 0.75))
         for i in range(self.count):
             self.positions[i] += self.speeds[i]
-            self.positions[i] = self.positions[i] - numPixels if self.positions[i] > numPixels else self.positions[i]
-            self.positions[i] = self.positions[i] + numPixels if self.positions[i] < 0 else self.positions[i]
+            self.positions[i] = roll_index(self.positions[i],numPixels)
             self.strip.setPixelRGB(int(self.positions[i]), self.colors[i])
         self.strip.show()
+
 
 class ColorWheel():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
@@ -110,10 +127,52 @@ class ColorWheel():
         if r < 0.01:
             self.color = random.choice(self.colors)
         for i in range(self.strip.numPixels()):
-            self.strip.setPixelRGB(i, C(rgb=tuple([e * r for e in self.color.rgb])))
+            self.strip.setPixelRGB(i, dim_color(self.color,r))
         self.strip.show()
 
+
 class Sparkles():
+    def __init__(self, strip: ColorPixelStrip, **kwargs):
+        self.strip = strip
+
+    @task
+    def __call__(self, ratio: float):
+        numPixels = self.strip.numPixels()
+        for i in range(numPixels):
+            self.strip.setPixelRGB(i, dim_color(self.strip.getPixelRGB(i), 0.75))
+        if random.choice(range(10)) < 2:
+            index = random.choice(range(numPixels))
+            color = random.choice(STAR)
+            self.strip.setPixelRGB(index, color)
+        self.strip.show()
+
+
+class RainbowStar():
+    def __init__(self, strip: ColorPixelStrip, **kwargs):
+        self.strip = strip
+        num = self.strip.numPixels()
+        self.position = random.choice(range(num))
+        self.size = random.choice(range(int(num/8),int(num/4)))
+        self.speed = random.uniform(0.5, 2)
+        self.easing = CubicEaseIn()
+
+    @task
+    def __call__(self, ratio: float):
+        self.position = roll_index( self.position + self.speed, self.strip.numPixels())
+        fraction = self.position % 1
+        indexes = [ int(((i + fraction) / self.size)*254) for i in range(self.size)]
+        start_tail = [ dim_color(RAINBOW[p],0.75 * (1-self.easing(i/len(indexes)))) for i,p in enumerate(indexes) ]
+        # extend to stip size (fill with black)
+        start_tail = start_tail + [C('black')]*(self.strip.numPixels() - len(start_tail))
+        start_tail = rotate(start_tail, int(self.position))
+        
+        for i in range(0,len(start_tail)):
+            self.strip.setPixelRGB(i, start_tail[i])
+
+        self.strip.show()
+
+
+class Wave():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
 
@@ -136,6 +195,9 @@ class TaskName(str, Enum):
     fallingStars = "fallingStars"
     colorWheel = "colorWheel"
     sparkles = "sparkles"
+    rainbowStar = "rainbowStar"
+    wave = "wave"
+
 
 
 class TaskFactory():
@@ -156,5 +218,9 @@ class TaskFactory():
             return ColorWheel(self.strip, **kwargs)
         elif name == 'sparkles':
             return Sparkles(self.strip, **kwargs)
+        elif name == 'rainbowStar':
+            return RainbowStar(self.strip, **kwargs)
+        elif name == 'wave':
+            return Wave(self.strip, **kwargs)
         else:
             return None
