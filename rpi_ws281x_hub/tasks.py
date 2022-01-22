@@ -165,12 +165,18 @@ class RainbowStar():
 
     @task
     def __call__(self, ratio: float):
-        self.position = roll_index( self.position + self.speed, self.strip.numPixels())
+        num = self.strip.numPixels()
+        if random.uniform(0,1) < 0.1:
+            self.speed = random.uniform(0.5, 2)
+        if random.uniform(0,1) < 0.1:
+            self.size = random.choice(range(int(num/8),int(num/4)))            
+
+        self.position = roll_index( self.position + self.speed, num)
         fraction = self.position % 1
         indexes = [ int(((i + fraction) / self.size)*254) for i in range(self.size)]
         start_tail = [ dim_color(RAINBOW[p],0.75 * (1-self.easing(i/len(indexes)))) for i,p in enumerate(indexes) ]
         # extend to stip size (fill with black)
-        start_tail = start_tail + [C('black')]*(self.strip.numPixels() - len(start_tail))
+        start_tail = start_tail + [C('black')]*(num - len(start_tail))
         start_tail = rotate(start_tail, int(self.position))
         
         for i in range(0,len(start_tail)):
@@ -182,9 +188,9 @@ class RainbowStar():
 class Wave():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
-        self.count = int(random.uniform(4, 8))
+        self.count = int(random.uniform(3, 6))
         self.phases = [random.uniform(0, 2*math.pi) for w in range(self.count)]
-        self.period = [random.uniform(0.1, 1) for w in range(self.count)]
+        self.period = [random.uniform(0.01, 0.5) for w in range(self.count)]
         self.speeds = [random.uniform(-2, 2) for w in range(self.count)]
         self.intensities = [random.uniform(0.5, 1) for w in range(self.count)]
 
@@ -194,7 +200,7 @@ class Wave():
         numWaves = self.count
 
         for i in range(numPixels):
-            self.strip.setPixelRGB(i, dim_color(self.strip.getPixelRGB(i), 0.25))
+            self.strip.setPixelRGB(i, dim_color(self.strip.getPixelRGB(i), 0.1))
 
         for w in range(numWaves):
             self.phases[w] += self.speeds[w]
