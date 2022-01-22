@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from colour import Color as C
 import random
 from enum import Enum
+import math
+from operator import add
 from pydantic import BaseModel
 from easing_functions import *
 
@@ -10,7 +12,7 @@ from strip import ColorPixelStrip
 
 RAINBOW = list(C('#FF0000').range_to(C('#00FFFE'), 128)) + list(C('#00FFFF').range_to(C('#FF0001'), 128))
 STAR = list(C('yellow').range_to(C('white'), 128))
-WAVE = list(C('blue').range_to(C('white'), 128))
+WAVE = list(C('blue').range_to(C('cyan'), 128))
 
 def roll_index(position, max_position):
     if position > max_position:
@@ -26,6 +28,11 @@ def dim_color(color, intensity):
 
 def rotate(array, position):
     return array[position:len(array)] + array[0:position]
+
+
+def add_color(c1, c2):
+    color = list(map(add, c1.rgb, c2.rgb))
+    return C(rgb=tuple([max(0,min(e,1)) for e in color]))
 
 
 def task(func):
@@ -175,16 +182,27 @@ class RainbowStar():
 class Wave():
     def __init__(self, strip: ColorPixelStrip, **kwargs):
         self.strip = strip
+        self.count = int(random.uniform(4, 8))
+        self.phases = [random.uniform(0, 2*math.pi) for w in range(self.count)]
+        self.period = [random.uniform(0.1, 1) for w in range(self.count)]
+        self.speeds = [random.uniform(-2, 2) for w in range(self.count)]
+        self.intensities = [random.uniform(0.5, 1) for w in range(self.count)]
 
     @task
     def __call__(self, ratio: float):
         numPixels = self.strip.numPixels()
-        for i in range(self.strip.numPixels()):
-            self.strip.setPixelRGB(i, C(rgb=tuple([e * 0.75 for e in self.strip.getPixelRGB(i).rgb])))
-        if random.choice(range(10)) < 2:
-            index = random.choice(range(numPixels))
-            color = random.choice(STAR)
-            self.strip.setPixelRGB(index, color)
+        numWaves = self.count
+
+        for i in range(numPixels):
+            self.strip.setPixelRGB(i, dim_color(self.strip.getPixelRGB(i), 0.25))
+
+        for w in range(numWaves):
+            self.phases[w] += self.speeds[w]
+            for i in range(numPixels):
+                value = self.intensities[w] * (1 + math.sin(self.phases[w] + self.period[w]*i)) / 2
+                color = WAVE[int(value*len(WAVE))]
+                self.strip.setPixelRGB(i, add_color(self.strip.getPixelRGB(i), dim_color(color,1/numWaves)))
+        
         self.strip.show()
 
 
@@ -197,7 +215,6 @@ class TaskName(str, Enum):
     sparkles = "sparkles"
     rainbowStar = "rainbowStar"
     wave = "wave"
-
 
 
 class TaskFactory():
