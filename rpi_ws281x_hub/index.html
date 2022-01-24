@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="icon" href="images/color-palette.png">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+
+<body>
+  <div id="app">
+    <v-app id="inspire">
+      <v-navigation-drawer v-model="drawer" width="350" app>
+        <v-card-title>Debug</v-card-title>
+        <v-card elevation="4" class="ma-2 pa-4">
+          <v-card-title>Effect
+            <v-spacer></v-spacer>
+            <div class="text-overline">{{effect}} [ {{effectIndex}} ]</div>
+          </v-card-title>
+          <v-card-title>Colors</v-card-title>
+          <v-card-text>
+            <v-color-picker class="mb-2" v-for="(color, index) in colors" v-model="colors[index]" :key="index"
+              elevation="4" hide-inputs hide-mode-switch hide-canvas mode="rgba"></v-color-picker>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="add_color">Add</v-btn>
+            <v-btn text @click="clear_colors">Clear</v-btn>
+          </v-card-actions>
+        </v-card>
+        <v-card elevation="4" class="ma-2 pa-4">
+          <v-card-title>Threads</v-card-title>
+          <v-card-text>
+            <v-alert v-if="running" color="success" dense>
+              <v-progress-circular indeterminate class="mr-6"></v-progress-circular>Running
+            </v-alert>
+            <v-alert v-else color="grey" dense>Not running</v-alert>
+            <v-slider v-model="timeout" label="timeout" hint="seconds" thumb-label dense min="1" max="600"></v-slider>
+            <v-slider v-model="period" label="period" hint="seconds" thumb-label dense min="1" max="60"></v-slider>
+            <v-slider v-model="tick" label="tick" hint="milli-seconds" step="10" thumb-label dense min="10" max="1000">
+            </v-slider>
+          </v-card-text>
+          <v-card-actions>
+            <v-progress-linear color="success" :buffer-value="ratio*100" rounded stream></v-progress-linear>
+          </v-card-actions>
+          <v-card-actions>
+            <v-progress-linear color="success" :buffer-value="progress*100" rounded stream></v-progress-linear>
+          </v-card-actions>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="fetch_status">Status</v-btn>
+            <v-btn text @click="start">Start</v-btn>
+            <v-btn text @click="stop">Stop</v-btn>
+          </v-card-actions>
+        </v-card>
+        <v-card elevation="4" class="ma-2 pa-4">
+          <v-card-title>WebSocket</v-card-title>
+          <v-card-text>
+            <v-alert v-if="readyState" type="success" dense>Connected</v-alert>
+            <v-alert v-else type="error" dense>Not connected</v-alert>
+            <v-text-field label="Message" outlined dense v-model="message"></v-text-field>
+          </v-card-text>
+          <v-card-actions>
+            <v-switch v-model="debug" insert label="debug"></v-switch>
+            <v-spacer></v-spacer>
+            <v-btn text @click="send_message">Send</v-btn>
+          </v-card-actions>
+        </v-card>
+        <v-card elevation="4" class="ma-2 pa-4">
+          <v-card-title>Config</v-card-title>
+          <v-card-text>
+            <v-list dense>
+              <v-list-item one-line v-for="(item, key, index) in config">
+                <v-list-item-icon>
+                  <v-icon>mdi-code-braces</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>{{key}}</v-list-item-title>
+                  <v-list-item-subtitle>{{item}}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-navigation-drawer>
+
+      <v-app-bar app elevation=10>
+        <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+        <v-avatar size="48">
+          <v-img class="d-inline" src="/images/color-palette.png"></v-img>
+        </v-avatar>
+        <v-toolbar-title class="ml-2 text-h4 text-uppercase">
+          rpi<span class="font-weight-thin">ws281x</span>hub
+        </v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon v-if="locale != locales[1]" @click="change_locale(1)"> en </v-btn>
+        <v-btn icon v-else @click="change_locale(0)"> fr </v-btn>
+        <v-btn icon @click="invert_theme_colors">
+          <v-icon>mdi-invert-colors</v-icon>
+        </v-btn>
+      </v-app-bar>
+
+      <v-main class="align-center">
+        <v-container class="mt-6">
+          <v-card class="mx-auto" elevation="10">
+            <template>
+              <v-carousel v-model="effectIndex">
+                <v-carousel-item v-for="(effect, i) in effects" :key="effect.name">
+                  <v-sheet height="100%" tile>
+                    <v-row class="fill-height" align="center" justify="center">
+                      <v-img max-height="300" max-width="300" :src="`/images/${effect.img}`"></v-img>
+                    </v-row>
+                  </v-sheet>
+                </v-carousel-item>
+              </v-carousel>
+            </template>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text @click="start">Start</v-btn>
+              <v-btn text @click="stop">Stop</v-btn>
+            </v-card-actions>
+            <v-card-actions v-if="debug">
+              Strip:
+              <v-sheet v-for="(color, i) in stripColors" class="ma-1" :color="color" rounded elevation="1" height="24"
+                width="24"></v-sheet>
+            </v-card-actions>
+          </v-card>
+        </v-container>
+      </v-main>
+      <v-snackbar v-model="snackbar" timeout="5000">
+        <v-avatar size="32" class="mr-6">
+          <v-img class="d-inline" src="/images/warning.png"></v-img>
+        </v-avatar>
+        {{ error }}
+      </v-snackbar>
+    </v-app>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <script src="https://unpkg.com/vue-i18n@8"></script>
+  <script>
+    const messages = {
+      en: {
+        inside: "Inside",
+        outside: "Outside",
+        chart: "Chart"
+      },
+      fr: {
+        inside: "Interieur",
+        outside: "Exterieur",
+        chart: "Graphique"
+      },
+    };
+    const i18n = new VueI18n({ messages: messages });
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify({
+        theme: { dark: localStorage.getItem("dark") || false },
+        treeShake: true
+      }),
+      i18n: i18n,
+      data: () => ({
+        drawer: localStorage.getItem("drawer") || true,
+        locale: localStorage.getItem("locale") || "fr",
+        locales: ["fr", "en"],
+        websocket: null,
+        readyState: false,
+        running: null,
+        period: 10,
+        timeout: 60,
+        tick: 33,
+        ratio: 0,
+        progress: 0,
+        debug: null,
+        message: null,
+        config: null,
+        effectIndex: 0,
+        effects: [
+          { name: "fire", img: "fire.png" },
+          { name: "rainbow", img: "rainbow.png" },
+          { name: "rainbowChase", img: "flag.png" },
+          { name: "fallingStars", img: "falling-star.png" },
+          { name: "colorWheel", img: "color-wheel.png" },
+          { name: "rainbowStar", img: "star.png" },
+          { name: "sparkles", img: "sparkles.png" },
+          { name: "wave", img: "wave.png" }
+        ],
+        colors: [null, null],
+        stripColors: [],
+        snackbar: null,
+        error: ''
+      }),
+      computed: {
+        effect: function () {
+          return this.effects[this.effectIndex].name || ""
+        }
+      },
+      methods: {
+        invert_theme_colors: function () {
+          this.$vuetify.theme.dark = !this.$vuetify.theme.dark
+          localStorage.setItem("dark", this.$vuetify.theme.dark)
+        },
+        clear_colors: function () {
+          this.colors = []
+        },
+        add_color: function () {
+          this.colors.push(null)
+        },
+        send_message: function () {
+          this.websocket.send(this.message)
+        },
+        on_open: function (event) {
+          console.log("on_open", event)
+          this.readyState = true
+        },
+        on_close: function (event) {
+          console.log("on_close", event)
+          this.readyState = false
+          this.websocket = null
+        },
+        on_message: function (event) {
+          let data = event.data
+          try {
+            json = JSON.parse(data)
+            this.running = json.running || null
+            this.ratio = json.state.ratio || 0
+            this.progress = json.state.progress || 0
+            this.stripColors = this.debug ? json.state.colors || [] : []
+          }
+          catch {
+            console.log("on_message", event)
+          }
+        },
+        fetch_status: function () {
+          fetch("/")
+            .then(response => response.json())
+            .then(data => {
+              this.on_message({ data: JSON.stringify(data) })
+            })
+        },
+        open: function () {
+          if (this.websocket == null) {
+            this.websocket = new WebSocket(`${window.location.origin}/ws`.replace("http", "ws"))
+            this.websocket.onmessage = this.on_message
+            this.websocket.onopen = this.on_open
+            this.websocket.onclose = this.on_close
+          }
+        },
+        start: function () {
+          let colors = ''
+          for (const color of this.colors) {
+            console.log(color.hex)
+            colors += `&color=${color.hex.replace('#', '')}`
+          }
+          console.log(colors)
+          fetch(`/start/${this.effect}?period=${this.period}&timeout=${this.timeout}&tick=${this.tick / 1000}${colors}`).then((response) => {
+            if (!response.ok) {
+              this.snackbar = true
+              this.error = response.statusText
+            }
+          })
+        },
+        stop: function () {
+          fetch("/stop")
+        },
+        fetch_config: function () {
+          fetch("/config")
+            .then(response => response.json())
+            .then(data => {
+              this.config = data
+            })
+        },
+        change_locale: function (index) {
+          this.locale = this.locales[index]
+          this.$i18n.locale = this.locale;
+          localStorage.setItem("locale", this.locale)
+        }
+      },
+      watch: {
+      },
+      created() {
+        this.$i18n.locale = this.locale
+        this.open()
+      },
+      mounted() {
+        this.fetch_status()
+        this.fetch_config()
+        setInterval(() => { !this.readyState ? this.open() : void (0) }, 1000)
+      }
+    })
+  </script>
+  <style lang="scss" scoped>
+    @import 'variables.scss'
+  </style>
+</body>
+
+</html>
