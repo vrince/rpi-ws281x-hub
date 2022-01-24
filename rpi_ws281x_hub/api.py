@@ -17,8 +17,8 @@ from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel
 
-from strip import ColorPixelStrip, ColorPixelStripConfig
-from tasks import *
+from rpi_ws281x_hub.strip import ColorPixelStrip, ColorPixelStripConfig
+from rpi_ws281x_hub.tasks import *
 
 # config_dir = user_config_dir('rpi-thermo-chick')
 module_dir = path.dirname(__file__)

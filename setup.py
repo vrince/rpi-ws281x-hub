@@ -13,7 +13,7 @@ setup(
     author_email="vrince@gmail.com",
     license="MIT",
     packages=find_packages(),
-    description="Raspberry Pi -  WS281x Led 🎨 hub 🎛",
+    description="Raspberry Pi - WS281x Led 🎨 hub 🎛",
     url="https://github.com/vrince/rpi-ws28x-hub",
     long_description=long_description,
     long_description_content_type='text/markdown',

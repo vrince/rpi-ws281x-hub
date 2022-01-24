@@ -8,7 +8,7 @@ from operator import add
 from pydantic import BaseModel
 from easing_functions import *
 
-from strip import ColorPixelStrip
+from rpi_ws281x_hub.strip import ColorPixelStrip
 
 RAINBOW = list(C('#FF0000').range_to(C('#00FFFE'), 128)) + list(C('#00FFFF').range_to(C('#FF0001'), 128))
 STAR = list(C('yellow').range_to(C('white'), 128))
