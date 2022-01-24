@@ -20,7 +20,7 @@ sudo pip3 install rpi_ws281x_hub
 
 Once installed make sure that the `config.json` file match your hardware setup, important part being `num` (number of pixels), `pin` (hardware pin used to control the led) and finally `channel` (depending on the pin).
 
-Know working `pin` / `channel` pairs are: `12`/`0`, `18`/`0` or `13`/`1` see [rpi_ws281x](https://github.com/jgarff/rpi_ws281x) for more information.
+Know working `pin|channel` pairs are: `12|0`, `18|0` or `13|1` see [rpi_ws281x](https://github.com/jgarff/rpi_ws281x) for more information.
 
 Finally fire the thing with:
 
@@ -48,6 +48,9 @@ sudo python3 setup.py develop
 Run locally:
 
 ```bash
+# using script
+sudo rpi-ws281x-hub
+# or directly using the api.py main
 sudo python3 rpi_ws281x_hub/api.py --port 8000
 ```
 
