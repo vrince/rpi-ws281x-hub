@@ -13,10 +13,10 @@ wheel)
     ;;
 clean)
     echo "🧨 Cleaning wheel ..."
-    rm -r $(pwd)/__pycache__
-    rm -r $(pwd)/dist
-    rm -r $(pwd)/build
-    rm -r $(pwd)/rpi_ws281x_hub.egg-info
+    rm -rf $(pwd)/__pycache__
+    rm -rf $(pwd)/dist
+    rm -rf $(pwd)/build
+    rm -rf $(pwd)/rpi_ws281x_hub.egg-info
     ;;  
 deploy)
     echo "🚀 Deploying wheel ..."

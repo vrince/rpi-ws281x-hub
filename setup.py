@@ -8,13 +8,13 @@ long_description = (Path(__file__).parent / "readme.md").read_text()
 
 setup(
     name="rpi_ws281x_hub",
-    version="1.0.2",
+    version="1.0.3",
     author="Thomas Vincent",
     author_email="vrince@gmail.com",
     license="MIT",
     packages=find_packages(),
-    description="Raspberry Pi - WS281x Led 🎨 hub 🎛",
-    url="https://github.com/vrince/rpi-ws28x-hub",
+    description="Raspberry Pi - WS281x Led hub 🎨",
+    url="https://github.com/vrince/rpi-ws281x-hub",
     long_description=long_description,
     long_description_content_type='text/markdown',
     package_data={
