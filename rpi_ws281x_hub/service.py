@@ -1,6 +1,6 @@
 import click
 from appdirs import user_config_dir
-from os import path, makedirs
+from os import path, makedirs, remove, system
 from shutil import copyfile
 
 service_name = 'rpi-ws281x-hub'
@@ -22,16 +22,24 @@ def cli(action):
     {service_name} service managment cli
 
     ACTIONS : 
-    
+
     * install (install service file)
     """
+    service_filename = f'{service_name}.service'
+    service_file = path.join(module_dir, service_filename)
+    installed_service_file = path.join(install_dir, service_filename)
+
     if action == 'install':
-        service_filename = f'{service_name}.service'
-        service_file = path.join(module_dir, service_filename)
-        installed_service_file = path.join(install_dir, service_filename)
-        print(f'🔧 installing {installed_service_file} ...')
+        print(f'✨ installing {installed_service_file} ...')
         if not path.exists(installed_service_file):
             copyfile(service_file, installed_service_file)
+    elif action == 'uninstall':
+        print(f'💀 un-installing {installed_service_file} ...')
+        if path.exists(installed_service_file):
+            remove(installed_service_file)
+    elif action in ['enable', 'start', 'stop', 'status']:
+        print(f'{action} {installed_service_file} ...')
+        system(f'systemctl {action} {service_filename}')
     else:
         print('unknown action')
 
