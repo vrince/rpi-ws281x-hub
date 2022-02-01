@@ -1,9 +1,10 @@
 [Unit]
-Description=rpi-ws281x-hub-service
+Description={{service_name}}-service
 After=network.target
 
 [Service]
-ExecStart=rpi-ws281x-hub
+ExecStart={{service_name}}
+WorkingDirectory={{working_directory}}
 
 [Install]
 WantedBy=multi-user.target

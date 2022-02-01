@@ -4,12 +4,11 @@ from timeit import default_timer as timer
 import time
 import logging
 import json
-
 from os import path
-
 import asyncio
 import uvicorn
 import click
+from appdirs import user_config_dir
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Response, Query
 from fastapi.responses import HTMLResponse
@@ -20,18 +19,25 @@ from pydantic import BaseModel
 from rpi_ws281x_hub.strip import ColorPixelStrip, ColorPixelStripConfig
 from rpi_ws281x_hub.tasks import *
 
-# config_dir = user_config_dir('rpi-thermo-chick')
+config_dir = user_config_dir('rpi-ws281x-hub')
+config_file = path.join(config_dir, 'config.json')
 module_dir = path.dirname(__file__)
 
 app = FastAPI()
-app.mount("/images", StaticFiles(directory="images"), name="images")
+app.mount('/images', StaticFiles(directory=module_dir + '/../images'), name='images')
 
 vue_app = open( module_dir + '/index.html', 'r').read()
 
 logger = logging.getLogger('gunicorn.error')
 
-# strip
-# Initialize the library (must be called once before other functions).
+# strip --> initialize the library (must be called once before other functions).
+print(f'config file: {config_file}')
+if path.exists(config_file):
+    default_config = ColorPixelStripConfig()
+    with open(config_file, 'w') as f:
+        f.write(default_config.json())
+    print(f'default config create: {config_file}, edit then restart')
+    exit(1)
 try:
     config = ColorPixelStripConfig.parse_file('config.json')
     strip = ColorPixelStrip(config)

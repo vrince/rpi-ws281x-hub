@@ -33,7 +33,8 @@ setup(
         'click==8.0.3',
         'appdirs==1.4.4',
         'colour==0.1.5',
-        'easing-functions==1.0.4'
+        'easing-functions==1.0.4',
+        'chevron==0.14.0'
     ],
     entry_points={
     'console_scripts': [
