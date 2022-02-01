@@ -37,7 +37,8 @@ setup(
     ],
     entry_points={
     'console_scripts': [
-        'rpi-ws281x-hub = rpi_ws281x_hub.api:cli'
+        'rpi-ws281x-hub = rpi_ws281x_hub.api:cli',
+        'rpi-ws281x-hub.service = rpi_ws281x_hub.service:cli'
     ]
 }
 )

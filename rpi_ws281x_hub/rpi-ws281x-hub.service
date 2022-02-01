@@ -1,0 +1,9 @@
+[Unit]
+Description=rpi-ws281x-hub-service
+After=network.target
+
+[Service]
+ExecStart=rpi-ws281x-hub
+
+[Install]
+WantedBy=multi-user.target
