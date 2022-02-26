@@ -59,6 +59,7 @@ class State(BaseModel):
     ratio: float = 0
     progress: float = 0
     colors: List[str] = []
+    task: str = None
 
 state = State()
 thread = None
@@ -87,6 +88,9 @@ class ConnectionManager:
         for connection in self.active_connections:
             await connection.send_text(message)
 
+    def client_count(self):
+        return len(self.active_connections)
+
 manager = ConnectionManager()
 
 # functions
@@ -94,6 +98,7 @@ manager = ConnectionManager()
 def status():
     return {
         'running': (thread is not None),
+        'clients': manager.client_count(),
         'state': state.dict()
     }
 
@@ -109,7 +114,6 @@ def event_loop(timeout : float, period: float, tick: float, effect: str, **kwarg
             state.ratio = state.position % 1
             state.progress = state.duration / state.timeout
             state.colors = task(state.ratio)
-            asyncio.run(manager.broadcast(json.dumps(status())))
             if timeout > 0 and timer() - start > timeout:
                 logger.info("timeout")
                 break
@@ -131,7 +135,6 @@ def start_thread(**kwargs):
             args=(event_loop, kwargs, on_thread_close),
             daemon=True)
         thread.start()
-        asyncio.run(manager.broadcast(json.dumps(status())))
 
 def on_thread_close():
     global thread, state
@@ -142,8 +145,8 @@ def on_thread_close():
     state.ratio = 0
     state.progress = 0
     state.colors = []
+    state.task = None
     strip.clear()
-    asyncio.run(manager.broadcast(json.dumps(status())))
 
 # Routes
 
@@ -170,24 +173,37 @@ def read_vue_app():
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
+        last_status = {}
         while True:
-            data = await websocket.receive_text()
-            await manager.broadcast(f"message text was: {data}")
+            await asyncio.sleep(0.1)
+            current_status = status()
+            if current_status != last_status:
+                last_status = current_status
+                await websocket.send_text(json.dumps(current_status))
     except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception:
         manager.disconnect(websocket)
 
 @app.get("/start/{effect}")
 def get_start(effect: TaskName,
               timeout: float = -1, period: float = 60, tick: float = 1,
               color: Optional[List[str]] = Query(None)):
+
     kwargs = {}
+
     if color is not None:
         kwargs['colors'] = [ f'#{c}' for c in color]
-    if not thread:
-        start_thread(effect=effect, timeout=timeout, period=period, tick=tick, **kwargs)
-        return {"starting": True}
-    else:
-        return {"starting": False}
+
+    global thread
+    if thread:
+        stop()
+        thread.join()
+
+    state.task = effect
+    start_thread(effect=effect, timeout=timeout, period=period, tick=tick, **kwargs)
+    return {"starting": True}
+
 
 @app.get("/stop")
 def stop():

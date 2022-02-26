@@ -1,9 +1,9 @@
 {
     "num": 48,
-    "pin": 13,
+    "pin": 18,
     "freq_hz": 800000,
     "dma": 10,
     "invert": false,
-    "brightness": 100,
-    "channel": 1
+    "brightness": 10,
+    "channel": 0
 }
